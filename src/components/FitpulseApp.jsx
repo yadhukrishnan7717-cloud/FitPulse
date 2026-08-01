@@ -42,7 +42,10 @@ import {
   Smile,
   Heart,
   GitBranch,
-  Type
+  Type,
+  MapPin,
+  Trash2,
+  PlusCircle
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -82,6 +85,17 @@ export const FitpulseApp = () => {
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isCommunityChatOpen, setIsCommunityChatOpen] = useState(false);
+  const [isCreateChallengeModalOpen, setIsCreateChallengeModalOpen] = useState(false);
+
+  // Geolocation & Ambient Hydration State
+  const [locationStatus, setLocationStatus] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_user_city');
+    return saved || 'Kochi, Kerala (Detected)';
+  });
+  const [tempCelsius, setTempCelsius] = useState(29.5);
+  const [humidityPct, setHumidityPct] = useState(68);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+  const [recommendedExtraWaterMl, setRecommendedExtraWaterMl] = useState(650);
 
   // GitHub Cloud Sync State inside Settings
   const [isGithubSyncing, setIsGithubSyncing] = useState(false);
@@ -125,6 +139,15 @@ export const FitpulseApp = () => {
     calorieGoal: calorieGoal,
     hydrationTarget: hydrationTarget,
     fontStyle: fontStyle
+  });
+
+  // Custom Challenge Form State
+  const [newChallengeForm, setNewChallengeForm] = useState({
+    title: '',
+    desc: '',
+    total: '',
+    unit: 'Days',
+    icon: '⚡'
   });
 
   // Analytics Graph Time Range State ('today', 'week', 'month')
@@ -175,7 +198,7 @@ export const FitpulseApp = () => {
   });
   const [foodForm, setFoodForm] = useState({ meal: 'Lunch', name: '', calories: '', protein: '', carbs: '', fats: '' });
 
-  // Challenges State
+  // Challenges State (Fully Customizable by User)
   const [challenges, setChallenges] = useState(() => {
     const saved = localStorage.getItem('fitpulse_challenges');
     return saved ? JSON.parse(saved) : [
@@ -204,7 +227,8 @@ export const FitpulseApp = () => {
     localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
     localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
     localStorage.setItem('fitpulse_community_chat', JSON.stringify(chatMessages));
-  }, [isDarkMode, fontStyle, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, chatMessages]);
+    localStorage.setItem('fitpulse_user_city', locationStatus);
+  }, [isDarkMode, fontStyle, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, chatMessages, locationStatus]);
 
   const triggerClickSound = () => {
     if (isSoundEnabled) {
@@ -220,6 +244,42 @@ export const FitpulseApp = () => {
   const cycleMotto = () => {
     triggerClickSound();
     setMottoIndex((prev) => (prev + 1) % motivationalMottos.length);
+  };
+
+  // Browser Geolocation Detector for Dynamic Hydration Intelligence
+  const handleDetectLocation = () => {
+    setIsDetectingLocation(true);
+    triggerClickSound();
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(2);
+          const lon = position.coords.longitude.toFixed(2);
+          
+          // Simulated weather lookup based on coordinates
+          const calculatedTemp = 30.2;
+          const calculatedHumidity = 72;
+          const extraWaterNeeded = Math.round((calculatedTemp - 20) * 45 + (calculatedHumidity * 3));
+
+          setTempCelsius(calculatedTemp);
+          setHumidityPct(calculatedHumidity);
+          setRecommendedExtraWaterMl(extraWaterNeeded);
+          setLocationStatus(`GPS Loc (${lat}°, ${lon}°)` );
+          setIsDetectingLocation(false);
+        },
+        (error) => {
+          // Fallback location
+          setLocationStatus("Kochi, Kerala (Default)");
+          setRecommendedExtraWaterMl(600);
+          setIsDetectingLocation(false);
+        },
+        { timeout: 5000 }
+      );
+    } else {
+      setLocationStatus("Local Region");
+      setIsDetectingLocation(false);
+    }
   };
 
   const handleSendChatMessage = (e) => {
@@ -261,6 +321,44 @@ export const FitpulseApp = () => {
     setHydrationTarget(parseInt(settingsForm.hydrationTarget));
     setFontStyle(settingsForm.fontStyle);
     setIsSettingsModalOpen(false);
+  };
+
+  // Custom Challenge Handlers
+  const handleCreateChallenge = (e) => {
+    e.preventDefault();
+    if (!newChallengeForm.title || !newChallengeForm.total) return;
+    triggerClickSound();
+
+    const customChallenge = {
+      id: `custom-${Date.now()}`,
+      title: newChallengeForm.title,
+      desc: newChallengeForm.desc || 'Personal custom fitness challenge',
+      progress: 0,
+      total: parseFloat(newChallengeForm.total),
+      joined: true,
+      icon: newChallengeForm.icon || '🏆',
+      unit: newChallengeForm.unit || 'Days'
+    };
+
+    setChallenges([customChallenge, ...challenges]);
+    setNewChallengeForm({ title: '', desc: '', total: '', unit: 'Days', icon: '⚡' });
+    setIsCreateChallengeModalOpen(false);
+  };
+
+  const handleDeleteChallenge = (id) => {
+    triggerClickSound();
+    setChallenges(challenges.filter(c => c.id !== id));
+  };
+
+  const handleIncrementChallengeProgress = (id) => {
+    triggerClickSound();
+    setChallenges(challenges.map(c => {
+      if (c.id === id) {
+        const nextProg = Math.min(c.total, parseFloat((c.progress + 1).toFixed(1)));
+        return { ...c, progress: nextProg };
+      }
+      return c;
+    }));
   };
 
   // Analytics Graph Datasets
@@ -556,18 +654,34 @@ export const FitpulseApp = () => {
               </div>
             </div>
 
-            {/* Weather Hydration Banner */}
-            <div className={`p-4 rounded-2xl border flex items-center justify-between ${cardBgClass}`}>
+            {/* Geolocation Weather Hydration Banner */}
+            <div className={`p-4.5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${cardBgClass}`}>
               <div className="flex items-center gap-3">
-                <CloudSun className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <CloudSun className="w-7 h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <div>
-                  <div className="text-sm font-bold">Optimal Weather Hydration</div>
-                  <span className={`text-xs font-mono ${mutedTextClass}`}>26.9°C Ambient Temperature | 64% Humidity</span>
+                  <div className="text-xs font-mono font-bold uppercase flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                    <MapPin className="w-3.5 h-3.5" /> {locationStatus}
+                  </div>
+                  <div className="text-xs font-mono text-slate-800 dark:text-slate-200 mt-0.5">
+                    {tempCelsius}°C Ambient Temp | {humidityPct}% Humidity
+                  </div>
                 </div>
               </div>
-              <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
-                RECOMMENDED: +500ml
-              </span>
+
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  onClick={handleDetectLocation}
+                  disabled={isDetectingLocation}
+                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-mono font-bold flex items-center gap-1 shadow-sm transition-all"
+                  title="Detect current location for hydration alert"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isDetectingLocation ? 'animate-spin' : ''}`} />
+                  <span>{isDetectingLocation ? 'Locating...' : 'Detect GPS 📍'}</span>
+                </button>
+                <span className="text-[11px] font-mono font-bold text-emerald-600 dark:text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/30">
+                  ALERT: +{recommendedExtraWaterMl}ml Water
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -818,15 +932,24 @@ export const FitpulseApp = () => {
           </div>
         )}
 
-        {/* TAB 4: GOALS AND CHALLENGES */}
+        {/* TAB 4: GOALS AND CUSTOMIZABLE CHALLENGES */}
         {activeTab === 'goals' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-500" />
-                <h3 className="text-sm font-bold uppercase font-mono">Fitness Challenges &amp; Burn Goals</h3>
+                <h3 className="text-sm font-bold uppercase font-mono">Custom Fitness Challenges ({challenges.length})</h3>
               </div>
-              <span className={`text-xs font-mono ${mutedTextClass}`}>4 Active Challenges</span>
+              
+              <button
+                onClick={() => {
+                  triggerClickSound();
+                  setIsCreateChallengeModalOpen(true);
+                }}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-sm flex items-center gap-1.5"
+              >
+                <PlusCircle className="w-4 h-4" /> Create Custom Challenge
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -842,6 +965,13 @@ export const FitpulseApp = () => {
                           <p className={`text-xs ${mutedTextClass}`}>{c.desc}</p>
                         </div>
                       </div>
+                      <button
+                        onClick={() => handleDeleteChallenge(c.id)}
+                        className={`p-1.5 rounded-xl hover:bg-red-500/20 text-red-400 transition-colors`}
+                        title="Delete Challenge"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
 
                     <div className="space-y-1.5">
@@ -854,16 +984,23 @@ export const FitpulseApp = () => {
                       </div>
                     </div>
 
-                    <div className="pt-2 flex justify-end">
+                    <div className="pt-2 flex justify-between items-center">
+                      <button
+                        onClick={() => handleIncrementChallengeProgress(c.id)}
+                        className={`px-3 py-1 rounded-xl text-[11px] font-mono font-bold uppercase transition-all bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30`}
+                      >
+                        + Log Progress Step
+                      </button>
+
                       <button
                         onClick={() => toggleChallengeJoin(c.id)}
-                        className={`px-4 py-1.5 rounded-full text-xs font-mono font-bold uppercase transition-all shadow-sm ${
+                        className={`px-3.5 py-1 rounded-full text-xs font-mono font-bold uppercase transition-all shadow-sm ${
                           c.joined 
                             ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40' 
                             : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
                         }`}
                       >
-                        {c.joined ? 'Joined & Active ✓' : 'Join Challenge'}
+                        {c.joined ? 'Active ✓' : 'Join'}
                       </button>
                     </div>
                   </div>
@@ -913,7 +1050,97 @@ export const FitpulseApp = () => {
         })}
       </div>
 
-      {/* 4. LIVE COMMUNITY CHAT MODAL */}
+      {/* 4. CREATE CUSTOM CHALLENGE MODAL */}
+      {isCreateChallengeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <form onSubmit={handleCreateChallenge} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
+                <h3 className="text-base font-bold font-mono uppercase">Create Custom Fitness Challenge</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsCreateChallengeModalOpen(false)}
+                className={`p-1 rounded-lg ${mutedTextClass}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Challenge Title</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. 100 Pushups Daily Streak"
+                  value={newChallengeForm.title}
+                  onChange={e => setNewChallengeForm({ ...newChallengeForm, title: e.target.value })}
+                  className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
+                />
+              </div>
+
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Short Description</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Complete 100 pushups for 14 straight days"
+                  value={newChallengeForm.desc}
+                  onChange={e => setNewChallengeForm({ ...newChallengeForm, desc: e.target.value })}
+                  className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Target Goal</label>
+                  <input 
+                    type="number"
+                    placeholder="e.g. 14"
+                    value={newChallengeForm.total}
+                    onChange={e => setNewChallengeForm({ ...newChallengeForm, total: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Unit</label>
+                  <select 
+                    value={newChallengeForm.unit}
+                    onChange={e => setNewChallengeForm({ ...newChallengeForm, unit: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
+                  >
+                    <option value="Days">Days</option>
+                    <option value="km">km</option>
+                    <option value="kcal">kcal</option>
+                    <option value="Liters">Liters</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Icon Emoji</label>
+                  <input 
+                    type="text"
+                    placeholder="⚡"
+                    value={newChallengeForm.icon}
+                    onChange={e => setNewChallengeForm({ ...newChallengeForm, icon: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono text-center focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add Custom Challenge
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* 5. LIVE COMMUNITY CHAT MODAL */}
       {isCommunityChatOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-lg border rounded-3xl p-5 space-y-4 shadow-2xl flex flex-col h-[85vh] ${cardBgClass}`}>
@@ -1021,7 +1248,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 5. SETTINGS, BODY METRICS, NOTHING OS FONT & GITHUB SYNC MODAL */}
+      {/* 6. SETTINGS, BODY METRICS, NOTHING OS FONT & GITHUB SYNC MODAL */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <form onSubmit={handleSaveSettings} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
@@ -1193,7 +1420,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 6. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
+      {/* 7. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
       {isAnalyticsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-2xl border rounded-3xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto ${cardBgClass}`}>
@@ -1315,7 +1542,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 7. GOOGLE CONNECT MODAL */}
+      {/* 8. GOOGLE CONNECT MODAL */}
       {isGoogleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>

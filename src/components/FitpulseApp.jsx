@@ -29,9 +29,7 @@ import {
   Moon,
   Volume2,
   VolumeX,
-  BarChart3,
-  Activity,
-  Compass
+  BarChart3
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -51,7 +49,7 @@ export const FitpulseApp = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  // Dedicated Analytics Graph Modal State (Top Right Header)
+  // Dedicated Analytics Graph Modal State (Triggered from Top Right Header Button)
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
 
   // Analytics Graph Time Range State ('today', 'week', 'month')
@@ -247,7 +245,7 @@ export const FitpulseApp = () => {
   return (
     <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass}`}>
       
-      {/* 1. TOP HEADER BAR: Theme Switcher, Dedicated Graph Tab (Top Right), Google Connect & Future Updates Banner */}
+      {/* 1. TOP HEADER BAR: Dedicated Graph Tab (Top Right), Theme Switcher, Google Connect & Future Updates Banner */}
       <div className={`w-full p-4 border-b flex flex-col gap-3 backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -263,7 +261,7 @@ export const FitpulseApp = () => {
                   {isDarkMode ? 'DARK MODE' : 'LIGHT MODE'}
                 </span>
               </div>
-              <p className={`text-xs font-mono ${mutedTextClass}`}>Fitness, Hydration &amp; Dedicated Graph Engine</p>
+              <p className={`text-xs font-mono ${mutedTextClass}`}>Fitness &amp; Hydration Engine</p>
             </div>
           </div>
 
@@ -349,106 +347,7 @@ export const FitpulseApp = () => {
         </div>
       </div>
 
-      {/* 2. TOP ANALYTICS GRAPH INTERFACE (Today / Week / Month Switcher) */}
-      <div className={`p-5 border-b space-y-4 ${
-        isDarkMode ? 'border-slate-800 bg-slate-900/30' : 'border-slate-200 bg-slate-50/60'
-      }`}>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-emerald-500" />
-            <h3 className="text-sm font-bold tracking-wide uppercase font-mono">
-              Calorie Burn &amp; Distance Analytics
-            </h3>
-          </div>
-
-          {/* Time Range Selector: Today / Week / Month */}
-          <div className={`flex items-center p-1 rounded-xl border ${
-            isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
-          }`}>
-            {['today', 'week', 'month'].map((range) => (
-              <button
-                key={range}
-                onClick={() => {
-                  triggerClickSound();
-                  setGraphTimeRange(range);
-                }}
-                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all ${
-                  graphTimeRange === range 
-                    ? 'bg-emerald-600 text-white shadow-md' 
-                    : `${mutedTextClass} hover:text-slate-900 dark:hover:text-slate-100`
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Dual Analytics Graphs (Calories & Distance) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* Graph 1: Calories Burned Graph */}
-          <div className={`p-4 rounded-2xl border space-y-3 ${cardBgClass}`}>
-            <div className="flex justify-between items-center text-xs font-mono">
-              <span className="text-orange-500 font-bold flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5" /> Calories Burned ({graphTimeRange})
-              </span>
-              <span className={mutedTextClass}>Peak: {maxCalorieValue} kcal</span>
-            </div>
-
-            {/* Custom SVG / HTML Bar Chart */}
-            <div className="h-32 flex items-end justify-between gap-2 pt-4 px-1">
-              {currentGraphData.calories.map((val, idx) => {
-                const heightPct = Math.max(15, Math.round((val / maxCalorieValue) * 100));
-                return (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded shadow">
-                      {val}k
-                    </div>
-                    <div 
-                      className="w-full rounded-t-lg bg-gradient-to-t from-orange-600 to-amber-400 transition-all duration-500 group-hover:brightness-125"
-                      style={{ height: `${heightPct}%` }}
-                    />
-                    <span className={`text-[9px] font-mono ${mutedTextClass}`}>{currentGraphData.labels[idx]}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Graph 2: Distance Travelled Graph */}
-          <div className={`p-4 rounded-2xl border space-y-3 ${cardBgClass}`}>
-            <div className="flex justify-between items-center text-xs font-mono">
-              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                <Footprints className="w-3.5 h-3.5" /> Distance Covered ({graphTimeRange})
-              </span>
-              <span className={mutedTextClass}>Peak: {maxDistanceValue} km</span>
-            </div>
-
-            {/* Custom SVG / HTML Bar Chart */}
-            <div className="h-32 flex items-end justify-between gap-2 pt-4 px-1">
-              {currentGraphData.distance.map((val, idx) => {
-                const heightPct = Math.max(15, Math.round((val / maxDistanceValue) * 100));
-                return (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded shadow">
-                      {val}km
-                    </div>
-                    <div 
-                      className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600 to-teal-400 transition-all duration-500 group-hover:brightness-125"
-                      style={{ height: `${heightPct}%` }}
-                    />
-                    <span className={`text-[9px] font-mono ${mutedTextClass}`}>{currentGraphData.labels[idx]}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* 3. MAIN TAB CONTENT AREA */}
+      {/* 2. MAIN TAB CONTENT AREA */}
       <div className="p-6 flex-1 min-h-[380px]">
         
         {/* TAB 1: DASHBOARD */}
@@ -860,7 +759,7 @@ export const FitpulseApp = () => {
 
       </div>
 
-      {/* 4. BOTTOM NAVIGATION BAR (4 MAIN TABS) */}
+      {/* 3. BOTTOM NAVIGATION BAR (4 MAIN TABS) */}
       <div className={`w-full p-3 border-t backdrop-blur-md flex items-center justify-around ${
         isDarkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-slate-50/95 border-slate-200'
       }`}>
@@ -898,7 +797,7 @@ export const FitpulseApp = () => {
         })}
       </div>
 
-      {/* 5. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
+      {/* 4. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
       {isAnalyticsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-2xl border rounded-3xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto ${cardBgClass}`}>
@@ -1020,7 +919,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 6. GOOGLE CONNECT MODAL */}
+      {/* 5. GOOGLE CONNECT MODAL */}
       {isGoogleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>

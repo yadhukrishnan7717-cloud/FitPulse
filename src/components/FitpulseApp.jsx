@@ -35,7 +35,8 @@ import {
   Scale,
   Ruler,
   Save,
-  Smartphone
+  Smartphone,
+  Quote
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -54,6 +55,16 @@ export const FitpulseApp = () => {
     const saved = localStorage.getItem('fitpulse_sound_enabled');
     return saved !== null ? JSON.parse(saved) : true;
   });
+
+  // Motivational Motto State
+  const motivationalMottos = [
+    "Empower Your Movement ⚡",
+    "Consistency Builds Greatness 🔥",
+    "Push Beyond Your Limits 💪",
+    "Every Step Counts 🏃",
+    "Small Daily Gains = Big Results 🏆"
+  ];
+  const [mottoIndex, setMottoIndex] = useState(0);
 
   // Dedicated Modals State
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
@@ -171,6 +182,11 @@ export const FitpulseApp = () => {
   const toggleTheme = () => {
     triggerClickSound();
     setIsDarkMode(prev => !prev);
+  };
+
+  const cycleMotto = () => {
+    triggerClickSound();
+    setMottoIndex((prev) => (prev + 1) % motivationalMottos.length);
   };
 
   const handleSaveSettings = (e) => {
@@ -291,7 +307,7 @@ export const FitpulseApp = () => {
   return (
     <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass}`}>
       
-      {/* 1. TOP HEADER BAR: Left Icon, CENTERED App Name, Right Toolbar (Dedicated Graphs, Google Fit, Settings ⚙️) */}
+      {/* 1. TOP HEADER BAR: Left Icon, CENTERED App Name & Motivational Motto, Right Toolbar (Dedicated Graphs, Google Fit, Settings ⚙️) */}
       <div className={`w-full px-5 py-4 border-b flex items-center justify-between backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
         
         {/* Left Side Icon */}
@@ -299,13 +315,17 @@ export const FitpulseApp = () => {
           <Smartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         </div>
 
-        {/* CENTERED APP NAME */}
-        <div className="text-center">
-          <h2 className="text-2xl font-extrabold tracking-tight font-sans text-slate-900 dark:text-slate-100">
+        {/* CENTERED APP NAME & MOTIVATIONAL MOTTO */}
+        <div 
+          onClick={cycleMotto} 
+          className="text-center cursor-pointer group select-none"
+          title="Click to cycle motivational motto"
+        >
+          <h2 className="text-2xl font-extrabold tracking-tight font-sans text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors">
             fitpulse
           </h2>
-          <p className={`text-[10px] font-mono tracking-widest uppercase ${mutedTextClass}`}>
-            {userHeight} cm • {userWeight} kg
+          <p className="text-[11px] font-mono font-bold tracking-wide italic text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
+            <span>"{motivationalMottos[mottoIndex]}"</span>
           </p>
         </div>
 

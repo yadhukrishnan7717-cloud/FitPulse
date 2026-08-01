@@ -29,7 +29,12 @@ import {
   Moon,
   Volume2,
   VolumeX,
-  BarChart3
+  BarChart3,
+  Settings,
+  User,
+  Scale,
+  Ruler,
+  Save
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -49,8 +54,35 @@ export const FitpulseApp = () => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-  // Dedicated Analytics Graph Modal State (Triggered from Top Right Header Button)
+  // Dedicated Modals State
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+  // User Profile & Settings State (Height, Weight, Daily Calorie Goal)
+  const [userWeight, setUserWeight] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_user_weight');
+    return saved ? parseFloat(saved) : 70.0;
+  });
+  const [userHeight, setUserHeight] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_user_height');
+    return saved ? parseFloat(saved) : 175.0;
+  });
+  const [calorieGoal, setCalorieGoal] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_calorie_goal');
+    return saved ? parseInt(saved) : 2200;
+  });
+  const [hydrationTarget, setHydrationTarget] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_hydration_target');
+    return saved ? parseInt(saved) : 2500;
+  });
+
+  // Temp Form State for Settings Modal
+  const [settingsForm, setSettingsForm] = useState({
+    weight: userWeight,
+    height: userHeight,
+    calorieGoal: calorieGoal,
+    hydrationTarget: hydrationTarget
+  });
 
   // Analytics Graph Time Range State ('today', 'week', 'month')
   const [graphTimeRange, setGraphTimeRange] = useState('week');
@@ -99,7 +131,6 @@ export const FitpulseApp = () => {
     ];
   });
   const [foodForm, setFoodForm] = useState({ meal: 'Lunch', name: '', calories: '', protein: '', carbs: '', fats: '' });
-  const calorieGoal = 2200;
 
   // Challenges State
   const [challenges, setChallenges] = useState(() => {
@@ -116,6 +147,10 @@ export const FitpulseApp = () => {
   useEffect(() => {
     localStorage.setItem('fitpulse_is_dark_mode', JSON.stringify(isDarkMode));
     localStorage.setItem('fitpulse_sound_enabled', JSON.stringify(isSoundEnabled));
+    localStorage.setItem('fitpulse_user_weight', userWeight.toString());
+    localStorage.setItem('fitpulse_user_height', userHeight.toString());
+    localStorage.setItem('fitpulse_calorie_goal', calorieGoal.toString());
+    localStorage.setItem('fitpulse_hydration_target', hydrationTarget.toString());
     localStorage.setItem('fitpulse_hydration', JSON.stringify(hydration));
     localStorage.setItem('fitpulse_sugar_cut', JSON.stringify(sugarCut));
     localStorage.setItem('fitpulse_active_burn', JSON.stringify(activeBurn));
@@ -124,7 +159,7 @@ export const FitpulseApp = () => {
     localStorage.setItem('fitpulse_workouts', JSON.stringify(workouts));
     localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
     localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
-  }, [isDarkMode, isSoundEnabled, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges]);
+  }, [isDarkMode, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges]);
 
   const triggerClickSound = () => {
     if (isSoundEnabled) {
@@ -135,6 +170,16 @@ export const FitpulseApp = () => {
   const toggleTheme = () => {
     triggerClickSound();
     setIsDarkMode(prev => !prev);
+  };
+
+  const handleSaveSettings = (e) => {
+    e.preventDefault();
+    triggerClickSound();
+    setUserWeight(parseFloat(settingsForm.weight));
+    setUserHeight(parseFloat(settingsForm.height));
+    setCalorieGoal(parseInt(settingsForm.calorieGoal));
+    setHydrationTarget(parseInt(settingsForm.hydrationTarget));
+    setIsSettingsModalOpen(false);
   };
 
   // Analytics Graph Datasets
@@ -245,7 +290,7 @@ export const FitpulseApp = () => {
   return (
     <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass}`}>
       
-      {/* 1. TOP HEADER BAR: Dedicated Graph Tab (Top Right), Theme Switcher, Google Connect & Future Updates Banner */}
+      {/* 1. TOP HEADER BAR: Settings Button, Dedicated Graph Tab, Theme Switcher, Google Connect */}
       <div className={`w-full p-4 border-b flex flex-col gap-3 backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -261,23 +306,37 @@ export const FitpulseApp = () => {
                   {isDarkMode ? 'DARK MODE' : 'LIGHT MODE'}
                 </span>
               </div>
-              <p className={`text-xs font-mono ${mutedTextClass}`}>Fitness &amp; Hydration Engine</p>
+              <p className={`text-xs font-mono ${mutedTextClass}`}>{userHeight} cm • {userWeight} kg • {calorieGoal} kcal</p>
             </div>
           </div>
 
-          {/* TOP RIGHT TOOLBAR: Dedicated Graph Tab, Sound Toggle, Dark Mode & Google Connect */}
+          {/* TOP RIGHT TOOLBAR: Settings Button ⚙️, Dedicated Graph Tab, Sound Toggle, Dark Mode & Google Connect */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            
+            {/* SETTINGS BUTTON ⚙️ */}
+            <button
+              onClick={() => {
+                triggerClickSound();
+                setSettingsForm({ weight: userWeight, height: userHeight, calorieGoal: calorieGoal, hydrationTarget: hydrationTarget });
+                setIsSettingsModalOpen(true);
+              }}
+              className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all shadow-sm flex items-center justify-center"
+              title="Open Settings & Body Metrics"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
             {/* DEDICATED GRAPH TAB BUTTON (TOP RIGHT) */}
             <button
               onClick={() => {
                 triggerClickSound();
                 setIsAnalyticsModalOpen(true);
               }}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
               title="Open Dedicated Analytics & Graph Tab"
             >
               <BarChart3 className="w-4 h-4" />
-              <span>Dedicated Graphs</span>
+              <span className="hidden sm:inline">Graphs</span>
             </button>
 
             {/* Sound Toggle */}
@@ -797,7 +856,123 @@ export const FitpulseApp = () => {
         })}
       </div>
 
-      {/* 4. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
+      {/* 4. SETTINGS & BODY METRICS MODAL */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <form onSubmit={handleSaveSettings} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-emerald-500" />
+                <h3 className="text-base font-bold font-mono uppercase">User Settings &amp; Body Metrics</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsSettingsModalOpen(false)}
+                className={`p-1 rounded-lg ${mutedTextClass} hover:text-slate-900 dark:hover:text-white`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Body Height & Weight Settings */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 flex items-center gap-1 ${mutedTextClass}`}>
+                    <Ruler className="w-3.5 h-3.5 text-emerald-500" /> Body Height (cm)
+                  </label>
+                  <input 
+                    type="number"
+                    step="0.5"
+                    value={settingsForm.height}
+                    onChange={e => setSettingsForm({ ...settingsForm, height: e.target.value })}
+                    className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 flex items-center gap-1 ${mutedTextClass}`}>
+                    <Scale className="w-3.5 h-3.5 text-emerald-500" /> Body Weight (kg)
+                  </label>
+                  <input 
+                    type="number"
+                    step="0.1"
+                    value={settingsForm.weight}
+                    onChange={e => setSettingsForm({ ...settingsForm, weight: e.target.value })}
+                    className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                  />
+                </div>
+              </div>
+
+              {/* Calorie & Hydration Targets */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Calorie Goal (kcal)</label>
+                  <input 
+                    type="number"
+                    value={settingsForm.calorieGoal}
+                    onChange={e => setSettingsForm({ ...settingsForm, calorieGoal: e.target.value })}
+                    className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Water Target (ml)</label>
+                  <input 
+                    type="number"
+                    value={settingsForm.hydrationTarget}
+                    onChange={e => setSettingsForm({ ...settingsForm, hydrationTarget: e.target.value })}
+                    className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                  />
+                </div>
+              </div>
+
+              {/* Quick Settings Toggles */}
+              <div className={`p-3 rounded-2xl border space-y-2.5 ${subCardBgClass}`}>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono">Theme Mode</span>
+                  <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold flex items-center gap-1 border ${
+                      isDarkMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-indigo-600 text-white border-indigo-700'
+                    }`}
+                  >
+                    {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-amber-200" />}
+                    <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono">Click Audio Feedback</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSoundEnabled(!isSoundEnabled);
+                      triggerClickSound();
+                    }}
+                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold flex items-center gap-1 border ${
+                      isSoundEnabled ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                    }`}
+                  >
+                    {isSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                    <span>{isSoundEnabled ? 'Sound ON' : 'Sound OFF'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <Save className="w-4 h-4" /> Save &amp; Update Settings
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* 5. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
       {isAnalyticsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-2xl border rounded-3xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto ${cardBgClass}`}>
@@ -919,7 +1094,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 5. GOOGLE CONNECT MODAL */}
+      {/* 6. GOOGLE CONNECT MODAL */}
       {isGoogleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>

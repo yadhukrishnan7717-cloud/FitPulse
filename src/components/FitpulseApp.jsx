@@ -34,7 +34,8 @@ import {
   User,
   Scale,
   Ruler,
-  Save
+  Save,
+  Smartphone
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -290,119 +291,72 @@ export const FitpulseApp = () => {
   return (
     <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass}`}>
       
-      {/* 1. TOP HEADER BAR: Settings Button, Dedicated Graph Tab, Theme Switcher, Google Connect */}
-      <div className={`w-full p-4 border-b flex flex-col gap-3 backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-lg shadow-md">
-              ⚡
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-extrabold tracking-tight font-sans">
-                  FITPULSE
-                </h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-mono uppercase font-bold">
-                  {isDarkMode ? 'DARK MODE' : 'LIGHT MODE'}
-                </span>
-              </div>
-              <p className={`text-xs font-mono ${mutedTextClass}`}>{userHeight} cm • {userWeight} kg • {calorieGoal} kcal</p>
-            </div>
-          </div>
-
-          {/* TOP RIGHT TOOLBAR: Settings Button ⚙️, Dedicated Graph Tab, Sound Toggle, Dark Mode & Google Connect */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            
-            {/* SETTINGS BUTTON ⚙️ */}
-            <button
-              onClick={() => {
-                triggerClickSound();
-                setSettingsForm({ weight: userWeight, height: userHeight, calorieGoal: calorieGoal, hydrationTarget: hydrationTarget });
-                setIsSettingsModalOpen(true);
-              }}
-              className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all shadow-sm flex items-center justify-center"
-              title="Open Settings & Body Metrics"
-            >
-              <Settings className="w-4 h-4" />
-            </button>
-
-            {/* DEDICATED GRAPH TAB BUTTON (TOP RIGHT) */}
-            <button
-              onClick={() => {
-                triggerClickSound();
-                setIsAnalyticsModalOpen(true);
-              }}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-md"
-              title="Open Dedicated Analytics & Graph Tab"
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Graphs</span>
-            </button>
-
-            {/* Sound Toggle */}
-            <button
-              onClick={() => {
-                setIsSoundEnabled(!isSoundEnabled);
-                triggerClickSound();
-              }}
-              className={`p-2 rounded-xl border text-xs font-mono transition-all ${
-                isSoundEnabled 
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
-                  : 'bg-slate-200 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'
-              }`}
-              title="Toggle Audio Feedback"
-            >
-              {isSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-
-            {/* MASTER DARK / LIGHT MODE SWITCH BUTTON */}
-            <button
-              onClick={toggleTheme}
-              className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm ${
-                isDarkMode 
-                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30' 
-                  : 'bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700'
-              }`}
-              title="Switch Dark / Light Theme"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-amber-200" />}
-              <span>{isDarkMode ? 'Light' : 'Dark'}</span>
-            </button>
-
-            {/* Google Connect Pill Button */}
-            <button
-              onClick={() => {
-                triggerClickSound();
-                setIsGoogleModalOpen(true);
-              }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all border shadow-sm ${
-                isGoogleConnected 
-                  ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border-emerald-500/40' 
-                  : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
-              }`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-              </svg>
-              <span className="hidden sm:inline">{isGoogleConnected ? 'Google Fit' : 'Connect'}</span>
-            </button>
-          </div>
+      {/* 1. TOP HEADER BAR: Left Icon, CENTERED App Name, Right Toolbar (Dedicated Graphs, Google Fit, Settings ⚙️) */}
+      <div className={`w-full px-5 py-4 border-b flex items-center justify-between backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
+        
+        {/* Left Side Icon */}
+        <div className="flex items-center gap-2">
+          <Smartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         </div>
 
-        {/* Future Updates Notification Banner */}
-        <div className={`flex items-center justify-between p-2.5 rounded-xl border text-xs font-mono ${
-          isDarkMode 
-            ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300' 
-            : 'bg-indigo-50 border-indigo-200 text-indigo-800'
-        }`}>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
-            <span>Future Update Feature: Real-time Wearable &amp; Google Connect Auto-Sync Enabled</span>
-          </div>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-500/30">NEW</span>
+        {/* CENTERED APP NAME */}
+        <div className="text-center">
+          <h2 className="text-2xl font-extrabold tracking-tight font-sans text-slate-900 dark:text-slate-100">
+            fitpulse
+          </h2>
+          <p className={`text-[10px] font-mono tracking-widest uppercase ${mutedTextClass}`}>
+            {userHeight} cm • {userWeight} kg
+          </p>
+        </div>
+
+        {/* TOP RIGHT TOOLBAR: Dedicated Graphs 📊, Google Fit, Settings ⚙️ */}
+        <div className="flex items-center gap-2">
+          {/* Dedicated Graph Button */}
+          <button
+            onClick={() => {
+              triggerClickSound();
+              setIsAnalyticsModalOpen(true);
+            }}
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            title="Open Dedicated Analytics & Graph Tab"
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Graphs</span>
+          </button>
+
+          {/* Google Fit Pill Button */}
+          <button
+            onClick={() => {
+              triggerClickSound();
+              setIsGoogleModalOpen(true);
+            }}
+            className={`p-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all border shadow-sm ${
+              isGoogleConnected 
+                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border-emerald-500/40' 
+                : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+            }`}
+            title="Google Fit Sync"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+            </svg>
+          </button>
+
+          {/* SETTINGS BUTTON ⚙️ (RIGHT SIDE) */}
+          <button
+            onClick={() => {
+              triggerClickSound();
+              setSettingsForm({ weight: userWeight, height: userHeight, calorieGoal: calorieGoal, hydrationTarget: hydrationTarget });
+              setIsSettingsModalOpen(true);
+            }}
+            className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all shadow-sm flex items-center justify-center"
+            title="Open Settings & Body Metrics"
+          >
+            <Settings className="w-4.5 h-4.5" />
+          </button>
         </div>
       </div>
 

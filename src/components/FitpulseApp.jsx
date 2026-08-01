@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, 
   Dumbbell, 
@@ -36,7 +36,11 @@ import {
   Ruler,
   Save,
   Smartphone,
-  Quote
+  MessageSquare,
+  Send,
+  Users,
+  Smile,
+  Heart
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -69,6 +73,20 @@ export const FitpulseApp = () => {
   // Dedicated Modals State
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isCommunityChatOpen, setIsCommunityChatOpen] = useState(false);
+
+  // Community Chat State
+  const [chatChannel, setChatChannel] = useState('general');
+  const [chatMessages, setChatMessages] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_community_chat');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, sender: 'Sarah K.', text: 'Day 5 of the Zero Sugar Challenge completed! Feeling super energized today ⚡', time: '11:42 AM', channel: 'general', avatar: '👩‍🦰' },
+      { id: 2, sender: 'Alex M.', text: 'Just finished a 15.4km morning highway ride! Burned 320 kcal 🚴🔥', time: '11:48 AM', channel: 'workout-motivation', avatar: '🏃' },
+      { id: 3, sender: 'Yadhu Krishnan', text: 'Reached 100% of my daily hydration target (2,500ml)! Stay hydrated everyone 💧', time: '12:01 PM', channel: 'general', avatar: '⚡' }
+    ];
+  });
+  const [newMessageText, setNewMessageText] = useState('');
+  const chatBottomRef = useRef(null);
 
   // User Profile & Settings State (Height, Weight, Daily Calorie Goal)
   const [userWeight, setUserWeight] = useState(() => {
@@ -171,7 +189,8 @@ export const FitpulseApp = () => {
     localStorage.setItem('fitpulse_workouts', JSON.stringify(workouts));
     localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
     localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
-  }, [isDarkMode, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges]);
+    localStorage.setItem('fitpulse_community_chat', JSON.stringify(chatMessages));
+  }, [isDarkMode, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, chatMessages]);
 
   const triggerClickSound = () => {
     if (isSoundEnabled) {
@@ -187,6 +206,27 @@ export const FitpulseApp = () => {
   const cycleMotto = () => {
     triggerClickSound();
     setMottoIndex((prev) => (prev + 1) % motivationalMottos.length);
+  };
+
+  const handleSendChatMessage = (e) => {
+    e.preventDefault();
+    if (!newMessageText.trim()) return;
+    triggerClickSound();
+
+    const msg = {
+      id: Date.now(),
+      sender: 'Yadhu Krishnan',
+      text: newMessageText.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      channel: chatChannel,
+      avatar: '⚡'
+    };
+
+    setChatMessages(prev => [...prev, msg]);
+    setNewMessageText('');
+    setTimeout(() => {
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSaveSettings = (e) => {
@@ -307,7 +347,7 @@ export const FitpulseApp = () => {
   return (
     <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass}`}>
       
-      {/* 1. TOP HEADER BAR: Left Icon, CENTERED App Name & Motivational Motto, Right Toolbar (Dedicated Graphs, Google Fit, Settings ⚙️) */}
+      {/* 1. TOP HEADER BAR: Left Icon, CENTERED App Name & Motivational Motto, Right Toolbar (Community Chat 💬, Dedicated Graphs 📊, Google Fit, Settings ⚙️) */}
       <div className={`w-full px-5 py-4 border-b flex items-center justify-between backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
         
         {/* Left Side Icon */}
@@ -329,8 +369,21 @@ export const FitpulseApp = () => {
           </p>
         </div>
 
-        {/* TOP RIGHT TOOLBAR: Dedicated Graphs 📊, Google Fit, Settings ⚙️ */}
+        {/* TOP RIGHT TOOLBAR: Community Chat 💬, Dedicated Graphs 📊, Google Fit, Settings ⚙️ */}
         <div className="flex items-center gap-2">
+          {/* COMMUNITY CHAT BUTTON 💬 */}
+          <button
+            onClick={() => {
+              triggerClickSound();
+              setIsCommunityChatOpen(true);
+            }}
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm"
+            title="Open Live Community Chat"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Community</span>
+          </button>
+
           {/* Dedicated Graph Button */}
           <button
             onClick={() => {
@@ -830,7 +883,115 @@ export const FitpulseApp = () => {
         })}
       </div>
 
-      {/* 4. SETTINGS & BODY METRICS MODAL */}
+      {/* 4. LIVE COMMUNITY CHAT MODAL */}
+      {isCommunityChatOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className={`relative w-full max-w-lg border rounded-3xl p-5 space-y-4 shadow-2xl flex flex-col h-[85vh] ${cardBgClass}`}>
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-indigo-600/20 text-indigo-500 border border-indigo-500/30">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-mono uppercase flex items-center gap-2">
+                    FitPulse Community Chat
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  </h3>
+                  <span className={`text-xs font-mono ${mutedTextClass}`}>14 Athletes Active Now</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsCommunityChatOpen(false)}
+                className={`p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 ${mutedTextClass}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Channels Switcher */}
+            <div className="flex gap-2 font-mono text-xs overflow-x-auto pb-1">
+              {[
+                { id: 'general', label: '#general' },
+                { id: 'workout-motivation', label: '#workout-talk' },
+                { id: 'sugar-cut', label: '#zero-sugar' }
+              ].map(ch => (
+                <button
+                  key={ch.id}
+                  onClick={() => {
+                    triggerClickSound();
+                    setChatChannel(ch.id);
+                  }}
+                  className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all border ${
+                    chatChannel === ch.id 
+                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm' 
+                      : `${subCardBgClass} ${mutedTextClass}`
+                  }`}
+                >
+                  {ch.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Messages Feed */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-1">
+              {chatMessages.filter(m => m.channel === chatChannel || chatChannel === 'general').map(msg => (
+                <div key={msg.id} className={`p-3 rounded-2xl border space-y-1 ${
+                  msg.sender === 'Yadhu Krishnan'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 ml-6'
+                    : subCardBgClass
+                }`}>
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <span className="font-bold flex items-center gap-1.5 text-slate-800 dark:text-slate-200">
+                      <span>{msg.avatar}</span> {msg.sender}
+                    </span>
+                    <span className={`text-[10px] ${mutedTextClass}`}>{msg.time}</span>
+                  </div>
+                  <p className="text-xs font-sans leading-relaxed">{msg.text}</p>
+                </div>
+              ))}
+              <div ref={chatBottomRef} />
+            </div>
+
+            {/* Quick Cheer Emojis */}
+            <div className="flex gap-2 font-mono text-xs">
+              {['💪 Keep going!', '🚴 10k Done!', '🔥 Stay active!', '💧 Drink water!'].map((cheer, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setNewMessageText(cheer);
+                    triggerClickSound();
+                  }}
+                  className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold ${subCardBgClass} hover:border-emerald-500 transition-colors whitespace-nowrap`}
+                >
+                  {cheer}
+                </button>
+              ))}
+            </div>
+
+            {/* Chat Input Form */}
+            <form onSubmit={handleSendChatMessage} className="flex gap-2">
+              <input
+                type="text"
+                placeholder={`Message ${chatChannel}...`}
+                value={newMessageText}
+                onChange={e => setNewMessageText(e.target.value)}
+                className={`flex-1 px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-indigo-500 ${subCardBgClass}`}
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold uppercase transition-all shadow flex items-center justify-center gap-1"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* 5. SETTINGS & BODY METRICS MODAL */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <form onSubmit={handleSaveSettings} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
@@ -946,7 +1107,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 5. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
+      {/* 6. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
       {isAnalyticsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-2xl border rounded-3xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto ${cardBgClass}`}>
@@ -1068,7 +1229,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 6. GOOGLE CONNECT MODAL */}
+      {/* 7. GOOGLE CONNECT MODAL */}
       {isGoogleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>

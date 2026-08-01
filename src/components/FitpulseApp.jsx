@@ -24,13 +24,29 @@ import {
   Award,
   Calendar,
   X,
-  Check
+  Check,
+  Sun,
+  Moon,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
 export const FitpulseApp = () => {
   // Navigation State (4 Bottom Tabs: 'dashboard', 'workout', 'food', 'goals')
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Dark / Light Theme Mode State
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_is_dark_mode');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // Sound Feedback State
+  const [isSoundEnabled, setIsSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_sound_enabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
 
   // Analytics Graph Time Range State ('today', 'week', 'month')
   const [graphTimeRange, setGraphTimeRange] = useState('week');
@@ -94,6 +110,8 @@ export const FitpulseApp = () => {
 
   // Save State Persistence
   useEffect(() => {
+    localStorage.setItem('fitpulse_is_dark_mode', JSON.stringify(isDarkMode));
+    localStorage.setItem('fitpulse_sound_enabled', JSON.stringify(isSoundEnabled));
     localStorage.setItem('fitpulse_hydration', JSON.stringify(hydration));
     localStorage.setItem('fitpulse_sugar_cut', JSON.stringify(sugarCut));
     localStorage.setItem('fitpulse_active_burn', JSON.stringify(activeBurn));
@@ -102,9 +120,20 @@ export const FitpulseApp = () => {
     localStorage.setItem('fitpulse_workouts', JSON.stringify(workouts));
     localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
     localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
-  }, [hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges]);
+  }, [isDarkMode, isSoundEnabled, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges]);
 
-  // Analytics Graph Datasets for Calories & Distance
+  const triggerClickSound = () => {
+    if (isSoundEnabled) {
+      switchAudio.playClickSound();
+    }
+  };
+
+  const toggleTheme = () => {
+    triggerClickSound();
+    setIsDarkMode(prev => !prev);
+  };
+
+  // Analytics Graph Datasets
   const analyticsData = {
     today: {
       labels: ['08 AM', '10 AM', '12 PM', '02 PM', '04 PM', '06 PM', '08 PM'],
@@ -131,7 +160,7 @@ export const FitpulseApp = () => {
   const handleAddWorkout = (e) => {
     e.preventDefault();
     if (!workoutForm.name || !workoutForm.duration || !workoutForm.calories) return;
-    switchAudio.playClickSound();
+    triggerClickSound();
 
     const newWorkout = {
       id: Date.now(),
@@ -154,7 +183,7 @@ export const FitpulseApp = () => {
   const handleAddFood = (e) => {
     e.preventDefault();
     if (!foodForm.name || !foodForm.calories) return;
-    switchAudio.playClickSound();
+    triggerClickSound();
 
     const newFood = {
       id: Date.now(),
@@ -171,13 +200,13 @@ export const FitpulseApp = () => {
   };
 
   const toggleChallengeJoin = (id) => {
-    switchAudio.playClickSound();
+    triggerClickSound();
     setChallenges(challenges.map(c => c.id === id ? { ...c, joined: !c.joined } : c));
   };
 
   const handleGoogleSync = () => {
     setIsSyncing(true);
-    switchAudio.playClickSound();
+    triggerClickSound();
     setTimeout(() => {
       setIsSyncing(false);
       setIsGoogleConnected(true);
@@ -190,40 +219,90 @@ export const FitpulseApp = () => {
   const totalCarbs = foodLogs.reduce((sum, item) => sum + item.carbs, 0);
   const totalFats = foodLogs.reduce((sum, item) => sum + item.fats, 0);
 
+  // Dynamic Theme Classes
+  const themeContainerClass = isDarkMode 
+    ? 'bg-slate-950 text-slate-100 border-slate-800' 
+    : 'bg-white text-slate-900 border-slate-200 shadow-xl';
+
+  const headerBgClass = isDarkMode 
+    ? 'bg-slate-900/80 border-slate-800' 
+    : 'bg-slate-50/90 border-slate-200';
+
+  const cardBgClass = isDarkMode 
+    ? 'bg-slate-900/90 border-slate-800 text-slate-100' 
+    : 'bg-white border-slate-200 shadow-sm text-slate-900';
+
+  const subCardBgClass = isDarkMode 
+    ? 'bg-slate-950 border-slate-800 text-slate-200' 
+    : 'bg-slate-50 border-slate-200 text-slate-800';
+
+  const mutedTextClass = isDarkMode ? 'text-slate-400' : 'text-slate-500';
+
   return (
-    <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border border-white/15 shadow-2xl flex flex-col my-4 bg-slate-950 text-slate-100">
+    <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass}`}>
       
-      {/* 1. TOP HEADER BAR: Google Connect Status & Future Updates Banner */}
-      <div className="w-full p-4 border-b border-slate-800 flex flex-col gap-3 bg-slate-900/60 backdrop-blur-md">
+      {/* 1. TOP HEADER BAR: Theme Switcher, Google Connect & Future Updates Banner */}
+      <div className={`w-full p-4 border-b flex flex-col gap-3 backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-lg shadow-md">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-lg shadow-md">
               ⚡
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-extrabold tracking-tight text-white font-sans">
+                <h2 className="text-xl font-extrabold tracking-tight font-sans">
                   FITPULSE
                 </h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono uppercase font-bold">
-                  v3.2 LIVE
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-mono uppercase font-bold">
+                  {isDarkMode ? 'DARK MODE' : 'LIGHT MODE'}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-mono">Fitness, Hydration &amp; Challenge Engine</p>
+              <p className={`text-xs font-mono ${mutedTextClass}`}>Fitness, Hydration &amp; Theme Engine</p>
             </div>
           </div>
 
-          {/* Google Connect Pill Button */}
+          {/* Quick Toolbar: Dark/Light Mode Switcher, Sound Toggle, Google Connect */}
           <div className="flex items-center gap-2">
+            {/* Sound Toggle */}
             <button
               onClick={() => {
-                switchAudio.playClickSound();
+                setIsSoundEnabled(!isSoundEnabled);
+                triggerClickSound();
+              }}
+              className={`p-2 rounded-xl border text-xs font-mono transition-all ${
+                isSoundEnabled 
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-500 border-slate-300 dark:border-slate-700'
+              }`}
+              title="Toggle Audio Feedback"
+            >
+              {isSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+
+            {/* MASTER DARK / LIGHT MODE SWITCH BUTTON */}
+            <button
+              onClick={toggleTheme}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm ${
+                isDarkMode 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30' 
+                  : 'bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-700'
+              }`}
+              title="Switch Dark / Light Theme"
+            >
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-amber-200" />}
+              <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+            </button>
+
+            {/* Google Connect Pill Button */}
+            <button
+              onClick={() => {
+                triggerClickSound();
                 setIsGoogleModalOpen(true);
               }}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold flex items-center gap-2 transition-all border shadow-sm ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold flex items-center gap-1.5 transition-all border shadow-sm ${
                 isGoogleConnected 
-                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30' 
-                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                  ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border-emerald-500/40' 
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
               }`}
             >
               <svg width="14" height="14" viewBox="0 0 24 24">
@@ -232,44 +311,52 @@ export const FitpulseApp = () => {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
               </svg>
-              <span>{isGoogleConnected ? 'Google Fit: Connected' : 'Connect Google Fit'}</span>
+              <span className="hidden sm:inline">{isGoogleConnected ? 'Google Fit' : 'Connect'}</span>
             </button>
           </div>
         </div>
 
         {/* Future Updates Notification Banner */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 font-mono">
+        <div className={`flex items-center justify-between p-2.5 rounded-xl border text-xs font-mono ${
+          isDarkMode 
+            ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300' 
+            : 'bg-indigo-50 border-indigo-200 text-indigo-800'
+        }`}>
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
             <span>Future Update Feature: Real-time Wearable &amp; Google Connect Auto-Sync Enabled</span>
           </div>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">NEW</span>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-bold border border-indigo-500/30">NEW</span>
         </div>
       </div>
 
-      {/* 2. TOP LEFT / UPPER ANALYTICS GRAPH INTERFACE (Today / Week / Month Switcher) */}
-      <div className="p-5 border-b border-slate-800 bg-slate-900/30 space-y-4">
+      {/* 2. TOP ANALYTICS GRAPH INTERFACE (Today / Week / Month Switcher) */}
+      <div className={`p-5 border-b space-y-4 ${
+        isDarkMode ? 'border-slate-800 bg-slate-900/30' : 'border-slate-200 bg-slate-50/60'
+      }`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-sm font-bold tracking-wide uppercase font-mono text-slate-200">
+            <TrendingUp className="w-5 h-5 text-emerald-500" />
+            <h3 className="text-sm font-bold tracking-wide uppercase font-mono">
               Calorie Burn &amp; Distance Analytics
             </h3>
           </div>
 
           {/* Time Range Selector: Today / Week / Month */}
-          <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
+          <div className={`flex items-center p-1 rounded-xl border ${
+            isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 shadow-sm'
+          }`}>
             {['today', 'week', 'month'].map((range) => (
               <button
                 key={range}
                 onClick={() => {
-                  switchAudio.playClickSound();
+                  triggerClickSound();
                   setGraphTimeRange(range);
                 }}
                 className={`px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all ${
                   graphTimeRange === range 
-                    ? 'bg-emerald-500 text-slate-950 shadow-md' 
-                    : 'text-slate-400 hover:text-slate-100'
+                    ? 'bg-emerald-600 text-white shadow-md' 
+                    : `${mutedTextClass} hover:text-slate-900 dark:hover:text-slate-100`
                 }`}
               >
                 {range}
@@ -282,12 +369,12 @@ export const FitpulseApp = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           {/* Graph 1: Calories Burned Graph */}
-          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <div className={`p-4 rounded-2xl border space-y-3 ${cardBgClass}`}>
             <div className="flex justify-between items-center text-xs font-mono">
-              <span className="text-orange-400 font-bold flex items-center gap-1">
+              <span className="text-orange-500 font-bold flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5" /> Calories Burned ({graphTimeRange})
               </span>
-              <span className="text-slate-400">Peak: {maxCalorieValue} kcal</span>
+              <span className={mutedTextClass}>Peak: {maxCalorieValue} kcal</span>
             </div>
 
             {/* Custom SVG / HTML Bar Chart */}
@@ -296,15 +383,14 @@ export const FitpulseApp = () => {
                 const heightPct = Math.max(15, Math.round((val / maxCalorieValue) * 100));
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    {/* Hover Value Badge */}
-                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-orange-500 text-slate-950 px-1.5 py-0.5 rounded shadow">
+                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded shadow">
                       {val}k
                     </div>
                     <div 
                       className="w-full rounded-t-lg bg-gradient-to-t from-orange-600 to-amber-400 transition-all duration-500 group-hover:brightness-125"
                       style={{ height: `${heightPct}%` }}
                     />
-                    <span className="text-[9px] font-mono text-slate-400">{currentGraphData.labels[idx]}</span>
+                    <span className={`text-[9px] font-mono ${mutedTextClass}`}>{currentGraphData.labels[idx]}</span>
                   </div>
                 );
               })}
@@ -312,12 +398,12 @@ export const FitpulseApp = () => {
           </div>
 
           {/* Graph 2: Distance Travelled Graph */}
-          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+          <div className={`p-4 rounded-2xl border space-y-3 ${cardBgClass}`}>
             <div className="flex justify-between items-center text-xs font-mono">
-              <span className="text-emerald-400 font-bold flex items-center gap-1">
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
                 <Footprints className="w-3.5 h-3.5" /> Distance Covered ({graphTimeRange})
               </span>
-              <span className="text-slate-400">Peak: {maxDistanceValue} km</span>
+              <span className={mutedTextClass}>Peak: {maxDistanceValue} km</span>
             </div>
 
             {/* Custom SVG / HTML Bar Chart */}
@@ -326,15 +412,14 @@ export const FitpulseApp = () => {
                 const heightPct = Math.max(15, Math.round((val / maxDistanceValue) * 100));
                 return (
                   <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    {/* Hover Value Badge */}
-                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-emerald-400 text-slate-950 px-1.5 py-0.5 rounded shadow">
+                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-emerald-500 text-white px-1.5 py-0.5 rounded shadow">
                       {val}km
                     </div>
                     <div 
-                      className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600 to-teal-300 transition-all duration-500 group-hover:brightness-125"
+                      className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600 to-teal-400 transition-all duration-500 group-hover:brightness-125"
                       style={{ height: `${heightPct}%` }}
                     />
-                    <span className="text-[9px] font-mono text-slate-400">{currentGraphData.labels[idx]}</span>
+                    <span className={`text-[9px] font-mono ${mutedTextClass}`}>{currentGraphData.labels[idx]}</span>
                   </div>
                 );
               })}
@@ -352,16 +437,16 @@ export const FitpulseApp = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Circular Distance Progress Ring */}
-              <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col items-center justify-center">
+              <div className={`p-6 rounded-3xl border flex flex-col items-center justify-center ${cardBgClass}`}>
                 <div className="relative w-48 h-48 flex items-center justify-center">
                   <svg width="180" height="180" viewBox="0 0 180 180" className="rotate-[-90deg]">
-                    <circle cx="90" cy="90" r="70" fill="none" stroke="#1e293b" strokeWidth="14" />
+                    <circle cx="90" cy="90" r="70" fill="none" stroke={isDarkMode ? "#1e293b" : "#e2e8f0"} strokeWidth="14" />
                     <circle 
                       cx="90" 
                       cy="90" 
                       r="70" 
                       fill="none" 
-                      stroke="#10b981" 
+                      stroke="#059669" 
                       strokeWidth="14" 
                       strokeDasharray="440"
                       strokeDashoffset={440 - (440 * Math.min(distanceKm / 10, 1))}
@@ -370,9 +455,9 @@ export const FitpulseApp = () => {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <Footprints className="w-6 h-6 text-emerald-400 mb-1" />
-                    <span className="text-3xl font-extrabold font-mono text-white">{distanceKm}</span>
-                    <span className="text-xs text-slate-400 font-mono">Kilometers Today</span>
+                    <Footprints className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mb-1" />
+                    <span className="text-3xl font-extrabold font-mono">{distanceKm}</span>
+                    <span className={`text-xs font-mono ${mutedTextClass}`}>Kilometers Covered</span>
                   </div>
                 </div>
               </div>
@@ -382,71 +467,71 @@ export const FitpulseApp = () => {
                 {/* Hydration */}
                 <div 
                   onClick={() => setHydration(prev => (prev + 10) % 110)}
-                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-blue-500/40 cursor-pointer transition-all space-y-2 group"
+                  className={`p-4 rounded-2xl border hover:border-blue-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
                 >
-                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 w-fit group-hover:scale-110 transition-transform">
+                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500 w-fit group-hover:scale-110 transition-transform">
                     <Droplets className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-blue-300 font-mono">{hydration}%</div>
-                    <span className="text-[10px] text-slate-400 font-mono uppercase">Hydration Level</span>
+                    <div className="text-lg font-bold text-blue-500 dark:text-blue-300 font-mono">{hydration}%</div>
+                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Hydration Level</span>
                   </div>
                 </div>
 
                 {/* Active Burn */}
                 <div 
                   onClick={() => setActiveBurn(prev => prev + 50)}
-                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-orange-500/40 cursor-pointer transition-all space-y-2 group"
+                  className={`p-4 rounded-2xl border hover:border-orange-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
                 >
-                  <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-400 w-fit group-hover:scale-110 transition-transform">
+                  <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500 w-fit group-hover:scale-110 transition-transform">
                     <Flame className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-orange-300 font-mono">{activeBurn} kcal</div>
-                    <span className="text-[10px] text-slate-400 font-mono uppercase">Active Burn</span>
+                    <div className="text-lg font-bold text-orange-500 dark:text-orange-300 font-mono">{activeBurn} kcal</div>
+                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Active Burn</span>
                   </div>
                 </div>
 
                 {/* Sugar Cut */}
                 <div 
                   onClick={() => setSugarCut(prev => prev + 2)}
-                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all space-y-2 group"
+                  className={`p-4 rounded-2xl border hover:border-emerald-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
                 >
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 w-fit group-hover:scale-110 transition-transform">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 w-fit group-hover:scale-110 transition-transform">
                     <Package className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-emerald-300 font-mono">{sugarCut}g</div>
-                    <span className="text-[10px] text-slate-400 font-mono uppercase">Sugar Avoided</span>
+                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-300 font-mono">{sugarCut}g</div>
+                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Sugar Avoided</span>
                   </div>
                 </div>
 
                 {/* Daily Calorie Intake */}
                 <div 
                   onClick={() => setActiveTab('food')}
-                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 cursor-pointer transition-all space-y-2 group"
+                  className={`p-4 rounded-2xl border hover:border-amber-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
                 >
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 w-fit group-hover:scale-110 transition-transform">
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 w-fit group-hover:scale-110 transition-transform">
                     <UtensilsCrossed className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-amber-300 font-mono">{totalFoodCalories} / {calorieGoal}</div>
-                    <span className="text-[10px] text-slate-400 font-mono uppercase">Calories Consumed</span>
+                    <div className="text-lg font-bold text-amber-600 dark:text-amber-300 font-mono">{totalFoodCalories} / {calorieGoal}</div>
+                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Calories Consumed</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Weather Hydration Banner */}
-            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+            <div className={`p-4 rounded-2xl border flex items-center justify-between ${cardBgClass}`}>
               <div className="flex items-center gap-3">
-                <CloudSun className="w-6 h-6 text-emerald-400" />
+                <CloudSun className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 <div>
-                  <div className="text-sm font-bold text-slate-200">Optimal Weather Hydration</div>
-                  <span className="text-xs text-slate-400 font-mono">26.9°C Ambient Temperature | 64% Relative Humidity</span>
+                  <div className="text-sm font-bold">Optimal Weather Hydration</div>
+                  <span className={`text-xs font-mono ${mutedTextClass}`}>26.9°C Ambient Temperature | 64% Humidity</span>
                 </div>
               </div>
-              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+              <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
                 RECOMMENDED: +500ml
               </span>
             </div>
@@ -458,31 +543,31 @@ export const FitpulseApp = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Workout Logger Form */}
-              <form onSubmit={handleAddWorkout} className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4">
+              <form onSubmit={handleAddWorkout} className={`p-5 rounded-3xl border space-y-4 ${cardBgClass}`}>
                 <div className="flex items-center gap-2">
-                  <Dumbbell className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Log Workout Activity</h3>
+                  <Dumbbell className="w-5 h-5 text-emerald-500" />
+                  <h3 className="text-sm font-bold uppercase font-mono">Log Workout Activity</h3>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Activity Name</label>
+                    <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Activity Name</label>
                     <input 
                       type="text"
                       placeholder="e.g. Morning Highway Ride"
                       value={workoutForm.name}
                       onChange={e => setWorkoutForm({ ...workoutForm, name: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Workout Type</label>
+                      <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Workout Type</label>
                       <select 
                         value={workoutForm.type}
                         onChange={e => setWorkoutForm({ ...workoutForm, type: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                        className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
                       >
                         <option value="running">🏃 Running</option>
                         <option value="cycling">🚴 Cycling</option>
@@ -492,45 +577,45 @@ export const FitpulseApp = () => {
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Duration (mins)</label>
+                      <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Duration (mins)</label>
                       <input 
                         type="number"
                         placeholder="e.g. 45"
                         value={workoutForm.duration}
                         onChange={e => setWorkoutForm({ ...workoutForm, duration: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                        className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Distance (km)</label>
+                      <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Distance (km)</label>
                       <input 
                         type="number"
                         step="0.1"
                         placeholder="e.g. 15.4"
                         value={workoutForm.distance}
                         onChange={e => setWorkoutForm({ ...workoutForm, distance: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                        className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Calories Burned</label>
+                      <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Calories Burned</label>
                       <input 
                         type="number"
                         placeholder="e.g. 320"
                         value={workoutForm.calories}
                         onChange={e => setWorkoutForm({ ...workoutForm, calories: e.target.value })}
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                        className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
                       />
                     </div>
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-md flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-md flex items-center justify-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" /> Save Workout Log
                   </button>
@@ -538,26 +623,26 @@ export const FitpulseApp = () => {
               </form>
 
               {/* Workout History Feed */}
-              <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3 flex flex-col">
-                <h3 className="text-sm font-bold uppercase font-mono text-slate-200 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-400" /> Logged Workouts Feed
+              <div className={`p-5 rounded-3xl border space-y-3 flex flex-col ${cardBgClass}`}>
+                <h3 className="text-sm font-bold uppercase font-mono flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-500" /> Logged Workouts Feed
                 </h3>
 
                 <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                   {workouts.map(item => (
-                    <div key={item.id} className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                    <div key={item.id} className={`p-3 rounded-2xl border flex items-center justify-between ${subCardBgClass}`}>
                       <div className="flex items-center gap-2.5">
                         <span className="text-lg">
                           {item.type === 'cycling' ? '🚴' : item.type === 'swimming' ? '🏊' : item.type === 'gym' ? '🏋️' : '🏃'}
                         </span>
                         <div>
-                          <div className="text-xs font-bold text-slate-100">{item.name}</div>
-                          <span className="text-[10px] text-slate-400 font-mono">{item.duration} mins • {item.time}</span>
+                          <div className="text-xs font-bold">{item.name}</div>
+                          <span className={`text-[10px] font-mono ${mutedTextClass}`}>{item.duration} mins • {item.time}</span>
                         </div>
                       </div>
                       <div className="text-right font-mono">
-                        <div className="text-xs font-bold text-orange-400">+{item.calories} kcal</div>
-                        {item.distance > 0 && <span className="text-[10px] text-emerald-400">{item.distance} km</span>}
+                        <div className="text-xs font-bold text-orange-500">+{item.calories} kcal</div>
+                        {item.distance > 0 && <span className="text-[10px] text-emerald-600 dark:text-emerald-400">{item.distance} km</span>}
                       </div>
                     </div>
                   ))}
@@ -571,50 +656,50 @@ export const FitpulseApp = () => {
         {activeTab === 'food' && (
           <div className="space-y-6">
             {/* Calorie Goal Progress Card */}
-            <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300 font-bold">DAILY CALORIE BUDGET</span>
-                <span className="text-amber-400 font-bold">{totalFoodCalories} / {calorieGoal} kcal</span>
+                <span className="font-bold">DAILY CALORIE BUDGET</span>
+                <span className="text-amber-500 font-bold">{totalFoodCalories} / {calorieGoal} kcal</span>
               </div>
-              <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-slate-800">
+              <div className={`w-full h-3 rounded-full overflow-hidden p-0.5 border ${subCardBgClass}`}>
                 <div 
-                  className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-500"
+                  className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-500 h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, Math.round((totalFoodCalories / calorieGoal) * 100))}%` }}
                 />
               </div>
 
               {/* Macro Nutrients Breakdown */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-center font-mono">
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">PROTEIN</span>
-                  <span className="text-sm font-bold text-emerald-400">{totalProtein}g</span>
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 text-center font-mono">
+                <div className={`p-2.5 rounded-xl border ${subCardBgClass}`}>
+                  <span className={`text-[10px] block ${mutedTextClass}`}>PROTEIN</span>
+                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{totalProtein}g</span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">CARBS</span>
-                  <span className="text-sm font-bold text-amber-400">{totalCarbs}g</span>
+                <div className={`p-2.5 rounded-xl border ${subCardBgClass}`}>
+                  <span className={`text-[10px] block ${mutedTextClass}`}>CARBS</span>
+                  <span className="text-sm font-bold text-amber-500">{totalCarbs}g</span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">FATS</span>
-                  <span className="text-sm font-bold text-orange-400">{totalFats}g</span>
+                <div className={`p-2.5 rounded-xl border ${subCardBgClass}`}>
+                  <span className={`text-[10px] block ${mutedTextClass}`}>FATS</span>
+                  <span className="text-sm font-bold text-orange-500">{totalFats}g</span>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Add Food Form */}
-              <form onSubmit={handleAddFood} className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+              <form onSubmit={handleAddFood} className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
                 <div className="flex items-center gap-2">
-                  <UtensilsCrossed className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Log Meal &amp; Calories</h3>
+                  <UtensilsCrossed className="w-5 h-5 text-amber-500" />
+                  <h3 className="text-sm font-bold uppercase font-mono">Log Meal &amp; Calories</h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Meal Time</label>
+                    <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Meal Time</label>
                     <select 
                       value={foodForm.meal}
                       onChange={e => setFoodForm({ ...foodForm, meal: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500"
+                      className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
                     >
                       <option value="Breakfast">🍳 Breakfast</option>
                       <option value="Lunch">🥗 Lunch</option>
@@ -624,25 +709,25 @@ export const FitpulseApp = () => {
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Calories</label>
+                    <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Calories</label>
                     <input 
                       type="number"
                       placeholder="e.g. 450"
                       value={foodForm.calories}
                       onChange={e => setFoodForm({ ...foodForm, calories: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500"
+                      className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Food Item Description</label>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Food Item Description</label>
                   <input 
                     type="text"
                     placeholder="e.g. Grilled Chicken & Rice"
                     value={foodForm.name}
                     onChange={e => setFoodForm({ ...foodForm, name: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500"
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
                   />
                 </div>
 
@@ -652,21 +737,21 @@ export const FitpulseApp = () => {
                     placeholder="Protein (g)"
                     value={foodForm.protein}
                     onChange={e => setFoodForm({ ...foodForm, protein: e.target.value })}
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none"
+                    className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono focus:outline-none ${subCardBgClass}`}
                   />
                   <input 
                     type="number" 
                     placeholder="Carbs (g)"
                     value={foodForm.carbs}
                     onChange={e => setFoodForm({ ...foodForm, carbs: e.target.value })}
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none"
+                    className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono focus:outline-none ${subCardBgClass}`}
                   />
                   <input 
                     type="number" 
                     placeholder="Fats (g)"
                     value={foodForm.fats}
                     onChange={e => setFoodForm({ ...foodForm, fats: e.target.value })}
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none"
+                    className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono focus:outline-none ${subCardBgClass}`}
                   />
                 </div>
 
@@ -679,16 +764,16 @@ export const FitpulseApp = () => {
               </form>
 
               {/* Food Logs List */}
-              <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
-                <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Today's Meals</h3>
+              <div className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
+                <h3 className="text-sm font-bold uppercase font-mono">Today's Meals</h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                   {foodLogs.map(item => (
-                    <div key={item.id} className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                    <div key={item.id} className={`p-3 rounded-2xl border flex items-center justify-between ${subCardBgClass}`}>
                       <div>
-                        <span className="text-[10px] text-amber-400 font-mono uppercase font-bold">{item.meal}</span>
-                        <div className="text-xs font-bold text-slate-100">{item.name}</div>
+                        <span className="text-[10px] text-amber-500 font-mono uppercase font-bold">{item.meal}</span>
+                        <div className="text-xs font-bold">{item.name}</div>
                       </div>
-                      <div className="text-right font-mono text-xs font-bold text-slate-200">
+                      <div className="text-right font-mono text-xs font-bold">
                         {item.calories} kcal
                       </div>
                     </div>
@@ -704,34 +789,34 @@ export const FitpulseApp = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-400" />
-                <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Fitness Challenges &amp; Burn Goals</h3>
+                <Trophy className="w-5 h-5 text-amber-500" />
+                <h3 className="text-sm font-bold uppercase font-mono">Fitness Challenges &amp; Burn Goals</h3>
               </div>
-              <span className="text-xs font-mono text-slate-400">4 Active Challenges</span>
+              <span className={`text-xs font-mono ${mutedTextClass}`}>4 Active Challenges</span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {challenges.map(c => {
                 const pct = Math.min(100, Math.round((c.progress / c.total) * 100));
                 return (
-                  <div key={c.id} className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3 hover:border-amber-500/40 transition-all">
+                  <div key={c.id} className={`p-5 rounded-3xl border space-y-3 hover:border-amber-500/40 transition-all ${cardBgClass}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl p-2 rounded-2xl bg-slate-950 border border-slate-800">{c.icon}</span>
+                        <span className={`text-2xl p-2 rounded-2xl border ${subCardBgClass}`}>{c.icon}</span>
                         <div>
-                          <div className="text-sm font-bold text-slate-100">{c.title}</div>
-                          <p className="text-xs text-slate-400">{c.desc}</p>
+                          <div className="text-sm font-bold">{c.title}</div>
+                          <p className={`text-xs ${mutedTextClass}`}>{c.desc}</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-mono text-slate-300">
-                        <span>Progress</span>
-                        <span className="font-bold text-emerald-400">{c.progress} / {c.total} {c.unit} ({pct}%)</span>
+                      <div className="flex justify-between text-xs font-mono">
+                        <span className={mutedTextClass}>Progress</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{c.progress} / {c.total} {c.unit} ({pct}%)</span>
                       </div>
-                      <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-800">
-                        <div className="bg-gradient-to-r from-emerald-500 to-teal-300 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                      <div className={`w-full h-2.5 rounded-full overflow-hidden p-0.5 border ${subCardBgClass}`}>
+                        <div className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                       </div>
                     </div>
 
@@ -740,7 +825,7 @@ export const FitpulseApp = () => {
                         onClick={() => toggleChallengeJoin(c.id)}
                         className={`px-4 py-1.5 rounded-full text-xs font-mono font-bold uppercase transition-all shadow-sm ${
                           c.joined 
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                            ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40' 
                             : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
                         }`}
                       >
@@ -757,7 +842,9 @@ export const FitpulseApp = () => {
       </div>
 
       {/* 4. BOTTOM NAVIGATION BAR (4 MAIN TABS) */}
-      <div className="w-full p-3 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md flex items-center justify-around">
+      <div className={`w-full p-3 border-t backdrop-blur-md flex items-center justify-around ${
+        isDarkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-slate-50/95 border-slate-200'
+      }`}>
         {[
           { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
           { id: 'workout', label: 'Workout', icon: Dumbbell },
@@ -770,7 +857,7 @@ export const FitpulseApp = () => {
             <button
               key={tab.id}
               onClick={() => {
-                switchAudio.playClickSound();
+                triggerClickSound();
                 setActiveTab(tab.id);
               }}
               className={`flex flex-col items-center gap-1 transition-all group ${
@@ -779,12 +866,12 @@ export const FitpulseApp = () => {
             >
               <div 
                 className={`p-2 rounded-2xl transition-all ${
-                  isSelected ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-400 group-hover:text-slate-200'
+                  isSelected ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : `${mutedTextClass} group-hover:text-slate-900 dark:group-hover:text-slate-100`
                 }`}
               >
                 <Icon className="w-5 h-5" />
               </div>
-              <span className={`text-[10px] font-mono font-bold tracking-tight ${isSelected ? 'text-emerald-400' : 'text-slate-400'}`}>
+              <span className={`text-[10px] font-mono font-bold tracking-tight ${isSelected ? 'text-emerald-600 dark:text-emerald-400' : mutedTextClass}`}>
                 {tab.label}
               </span>
             </button>
@@ -795,8 +882,8 @@ export const FitpulseApp = () => {
       {/* 5. GOOGLE CONNECT MODAL */}
       {isGoogleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -804,27 +891,27 @@ export const FitpulseApp = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
-                <h3 className="text-base font-bold text-slate-100">Google Fit Connect</h3>
+                <h3 className="text-base font-bold">Google Fit Connect</h3>
               </div>
               <button 
                 onClick={() => setIsGoogleModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
+                className={`p-1 rounded-lg ${mutedTextClass} hover:text-slate-900 dark:hover:text-white`}
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-300">
+            <div className="space-y-3 text-xs">
               <p>Authorize FitPulse to sync your daily steps, active workout duration, and calories burned automatically with Google Fit.</p>
               
-              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 font-mono text-[11px]">
+              <div className={`p-3.5 rounded-2xl border space-y-2 font-mono text-[11px] ${subCardBgClass}`}>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Account:</span>
-                  <span className="text-slate-200 font-bold">yadhukrishnan7717@gmail.com</span>
+                  <span className={mutedTextClass}>Account:</span>
+                  <span className="font-bold">yadhukrishnan7717@gmail.com</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Status:</span>
-                  <span className={isGoogleConnected ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                  <span className={mutedTextClass}>Status:</span>
+                  <span className={isGoogleConnected ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-amber-500 font-bold'}>
                     {isGoogleConnected ? 'SYNCED & ACTIVE' : 'READY TO AUTHORIZE'}
                   </span>
                 </div>
@@ -834,7 +921,7 @@ export const FitpulseApp = () => {
             <button
               onClick={handleGoogleSync}
               disabled={isSyncing}
-              className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-lg flex items-center justify-center gap-2"
             >
               {isSyncing ? (
                 <>

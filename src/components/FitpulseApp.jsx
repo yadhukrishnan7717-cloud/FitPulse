@@ -40,7 +40,9 @@ import {
   Send,
   Users,
   Smile,
-  Heart
+  Heart,
+  GitBranch,
+  Type
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -52,6 +54,12 @@ export const FitpulseApp = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('fitpulse_is_dark_mode');
     return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // Font Style State ('nothing', 'inter', 'mono')
+  const [fontStyle, setFontStyle] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_font_style');
+    return saved || 'nothing';
   });
 
   // Sound Feedback State
@@ -74,6 +82,10 @@ export const FitpulseApp = () => {
   const [isAnalyticsModalOpen, setIsAnalyticsModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isCommunityChatOpen, setIsCommunityChatOpen] = useState(false);
+
+  // GitHub Cloud Sync State inside Settings
+  const [isGithubSyncing, setIsGithubSyncing] = useState(false);
+  const [githubSyncStatus, setGithubSyncStatus] = useState('SYNCED WITH MAIN');
 
   // Community Chat State
   const [chatChannel, setChatChannel] = useState('general');
@@ -111,7 +123,8 @@ export const FitpulseApp = () => {
     weight: userWeight,
     height: userHeight,
     calorieGoal: calorieGoal,
-    hydrationTarget: hydrationTarget
+    hydrationTarget: hydrationTarget,
+    fontStyle: fontStyle
   });
 
   // Analytics Graph Time Range State ('today', 'week', 'month')
@@ -176,6 +189,7 @@ export const FitpulseApp = () => {
   // Save State Persistence
   useEffect(() => {
     localStorage.setItem('fitpulse_is_dark_mode', JSON.stringify(isDarkMode));
+    localStorage.setItem('fitpulse_font_style', fontStyle);
     localStorage.setItem('fitpulse_sound_enabled', JSON.stringify(isSoundEnabled));
     localStorage.setItem('fitpulse_user_weight', userWeight.toString());
     localStorage.setItem('fitpulse_user_height', userHeight.toString());
@@ -190,7 +204,7 @@ export const FitpulseApp = () => {
     localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
     localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
     localStorage.setItem('fitpulse_community_chat', JSON.stringify(chatMessages));
-  }, [isDarkMode, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, chatMessages]);
+  }, [isDarkMode, fontStyle, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, chatMessages]);
 
   const triggerClickSound = () => {
     if (isSoundEnabled) {
@@ -229,6 +243,15 @@ export const FitpulseApp = () => {
     }, 100);
   };
 
+  const handleTriggerGithubSync = () => {
+    setIsGithubSyncing(true);
+    triggerClickSound();
+    setTimeout(() => {
+      setIsGithubSyncing(false);
+      setGithubSyncStatus('PUSHED TO MAIN ✓');
+    }, 1000);
+  };
+
   const handleSaveSettings = (e) => {
     e.preventDefault();
     triggerClickSound();
@@ -236,6 +259,7 @@ export const FitpulseApp = () => {
     setUserHeight(parseFloat(settingsForm.height));
     setCalorieGoal(parseInt(settingsForm.calorieGoal));
     setHydrationTarget(parseInt(settingsForm.hydrationTarget));
+    setFontStyle(settingsForm.fontStyle);
     setIsSettingsModalOpen(false);
   };
 
@@ -325,10 +349,14 @@ export const FitpulseApp = () => {
   const totalCarbs = foodLogs.reduce((sum, item) => sum + item.carbs, 0);
   const totalFats = foodLogs.reduce((sum, item) => sum + item.fats, 0);
 
-  // Dynamic Theme Classes
+  // Dynamic Theme & Font Classes
   const themeContainerClass = isDarkMode 
     ? 'bg-slate-950 text-slate-100 border-slate-800' 
     : 'bg-white text-slate-900 border-slate-200 shadow-xl';
+
+  const fontClass = fontStyle === 'nothing' 
+    ? 'font-mono uppercase tracking-wider' 
+    : fontStyle === 'mono' ? 'font-mono' : 'font-sans';
 
   const headerBgClass = isDarkMode 
     ? 'bg-slate-900/80 border-slate-800' 
@@ -345,7 +373,7 @@ export const FitpulseApp = () => {
   const mutedTextClass = isDarkMode ? 'text-slate-400' : 'text-slate-500';
 
   return (
-    <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass}`}>
+    <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass} ${fontClass}`}>
       
       {/* 1. TOP HEADER BAR: Left Icon, CENTERED App Name & Motivational Motto, Right Toolbar (Community Chat 💬, Dedicated Graphs 📊, Google Fit, Settings ⚙️) */}
       <div className={`w-full px-5 py-4 border-b flex items-center justify-between backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
@@ -361,7 +389,9 @@ export const FitpulseApp = () => {
           className="text-center cursor-pointer group select-none"
           title="Click to cycle motivational motto"
         >
-          <h2 className="text-2xl font-extrabold tracking-tight font-sans text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors">
+          <h2 className={`text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors ${
+            fontStyle === 'nothing' ? 'font-mono uppercase tracking-widest' : 'font-sans'
+          }`}>
             fitpulse
           </h2>
           <p className="text-[11px] font-mono font-bold tracking-wide italic text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
@@ -422,7 +452,7 @@ export const FitpulseApp = () => {
           <button
             onClick={() => {
               triggerClickSound();
-              setSettingsForm({ weight: userWeight, height: userHeight, calorieGoal: calorieGoal, hydrationTarget: hydrationTarget });
+              setSettingsForm({ weight: userWeight, height: userHeight, calorieGoal: calorieGoal, hydrationTarget: hydrationTarget, fontStyle: fontStyle });
               setIsSettingsModalOpen(true);
             }}
             className="p-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all shadow-sm flex items-center justify-center"
@@ -991,14 +1021,14 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 5. SETTINGS & BODY METRICS MODAL */}
+      {/* 5. SETTINGS, BODY METRICS, NOTHING OS FONT & GITHUB SYNC MODAL */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <form onSubmit={handleSaveSettings} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5 text-emerald-500" />
-                <h3 className="text-base font-bold font-mono uppercase">User Settings &amp; Body Metrics</h3>
+                <h3 className="text-base font-bold font-mono uppercase">User Settings &amp; Cloud Sync</h3>
               </div>
               <button 
                 type="button"
@@ -1010,6 +1040,62 @@ export const FitpulseApp = () => {
             </div>
 
             <div className="space-y-4">
+              
+              {/* GitHub Repository Cloud Sync Section */}
+              <div className={`p-3.5 rounded-2xl border space-y-2 font-mono ${subCardBgClass}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold flex items-center gap-1.5 text-slate-800 dark:text-slate-200">
+                    <GitBranch className="w-4 h-4 text-emerald-500" /> GitHub Repository
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/30">
+                    {githubSyncStatus}
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-500 dark:text-slate-400 space-y-1">
+                  <div>Repo: <span className="text-emerald-600 dark:text-emerald-300">yadhukrishnan7717-cloud/FitPulse.git</span></div>
+                  <div>Branch: <span className="font-bold">main</span></div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleTriggerGithubSync}
+                  disabled={isGithubSyncing}
+                  className="w-full py-1.5 mt-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isGithubSyncing ? 'animate-spin' : ''}`} />
+                  <span>{isGithubSyncing ? 'Pushing to GitHub...' : 'Sync & Push Code to GitHub'}</span>
+                </button>
+              </div>
+
+              {/* Nothing Font Style Selector */}
+              <div className="space-y-1.5">
+                <label className={`text-[10px] font-mono uppercase block flex items-center gap-1 ${mutedTextClass}`}>
+                  <Type className="w-3.5 h-3.5 text-emerald-500" /> Typography &amp; Font Engine
+                </label>
+                <div className="grid grid-cols-3 gap-2 font-mono text-xs">
+                  {[
+                    { id: 'nothing', label: 'NOTHING OS' },
+                    { id: 'inter', label: 'INTER SANS' },
+                    { id: 'mono', label: 'MONOSPACE' }
+                  ].map(f => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => {
+                        triggerClickSound();
+                        setSettingsForm({ ...settingsForm, fontStyle: f.id });
+                      }}
+                      className={`py-2 px-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
+                        settingsForm.fontStyle === f.id
+                          ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
+                          : `${subCardBgClass} ${mutedTextClass}`
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Body Height & Weight Settings */}
               <div className="grid grid-cols-2 gap-3">
                 <div>

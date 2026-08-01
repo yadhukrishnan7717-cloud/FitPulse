@@ -1,359 +1,857 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Home, 
-  TrendingUp, 
-  Package, 
-  User, 
-  Droplets, 
+  LayoutDashboard, 
+  Dumbbell, 
+  UtensilsCrossed, 
+  Trophy, 
   Flame, 
-  CloudSun, 
+  Droplets, 
   Footprints, 
   Coffee, 
-  Moon, 
-  Plus, 
+  Package, 
+  CloudSun, 
+  Sparkles, 
+  TrendingUp, 
   Clock, 
-  Zap,
-  BarChart3,
-  ClipboardList,
-  Compass
+  Plus, 
+  CheckCircle2, 
+  RefreshCw, 
+  ShieldCheck, 
+  ChevronRight, 
+  Zap, 
+  Target, 
+  Bike, 
+  Award,
+  Calendar,
+  X,
+  Check
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
-export const DRINK_PRESETS = [
-  { id: 'espresso', name: 'Espresso Shot', caffeineMg: 63, icon: '☕' },
-  { id: 'coldbrew', name: 'Cold Brew Coffee', caffeineMg: 145, icon: '🧊' },
-  { id: 'matcha', name: 'Matcha Green Tea', caffeineMg: 45, icon: '🍵' },
-  { id: 'energy', name: 'Energy Drink', caffeineMg: 160, icon: '⚡' }
-];
+export const FitpulseApp = () => {
+  // Navigation State (4 Bottom Tabs: 'dashboard', 'workout', 'food', 'goals')
+  const [activeTab, setActiveTab] = useState('dashboard');
 
-export const FitpulseApp = ({ fontClass, isDarkMode, accentColor = '#3D6B3D' }) => {
-  const [activeTab, setActiveTab] = useState('today');
-  const [hydration, setHydration] = useState(65);
-  const [sugarCut, setSugarCut] = useState(12);
-  const [activeBurn, setActiveBurn] = useState(410);
-  const [distanceKm, setDistanceKm] = useState(6.3);
+  // Analytics Graph Time Range State ('today', 'week', 'month')
+  const [graphTimeRange, setGraphTimeRange] = useState('week');
 
-  // Professional Caffeine Usage State
-  const [caffeineMg, setCaffeineMg] = useState(160); // Default 160mg
-  const [caffeineLimitMg] = useState(400); // 400mg FDA recommended max limit
-  const [caffeineLogHistory, setCaffeineLogHistory] = useState([
-    { name: 'Morning Cold Brew', mg: 145, time: '08:30 AM' }
-  ]);
+  // Dashboard Core Metrics State
+  const [hydration, setHydration] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_hydration');
+    return saved ? JSON.parse(saved) : 65; // percentage
+  });
+  const [sugarCut, setSugarCut] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_sugar_cut');
+    return saved ? JSON.parse(saved) : 14; // grams avoided
+  });
+  const [activeBurn, setActiveBurn] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_active_burn');
+    return saved ? JSON.parse(saved) : 480; // kcal
+  });
+  const [distanceKm, setDistanceKm] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_distance_km');
+    return saved ? JSON.parse(saved) : 7.2; // km
+  });
 
-  const primaryColor = accentColor || '#006654';
+  // Google Connect & Modal State
+  const [isGoogleConnected, setIsGoogleConnected] = useState(() => {
+    return localStorage.getItem('fitpulse_google_connected') === 'true';
+  });
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleAddCaffeine = (preset) => {
-    switchAudio.playClickSound();
-    setCaffeineMg(prev => Math.min(prev + preset.caffeineMg, 600));
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setCaffeineLogHistory(prev => [
-      { name: preset.name, mg: preset.caffeineMg, time: timeStr },
-      ...prev
-    ]);
+  // Workout State
+  const [workouts, setWorkouts] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_workouts');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, name: 'Morning Highway Ride', type: 'cycling', duration: 45, distance: 15.4, calories: 320, time: '07:30 AM' },
+      { id: 2, name: 'Interval Park Run', type: 'running', duration: 25, distance: 4.8, calories: 240, time: '06:15 AM' }
+    ];
+  });
+  const [workoutForm, setWorkoutForm] = useState({ name: '', type: 'running', duration: '', distance: '', calories: '' });
+
+  // Food & Nutrition State
+  const [foodLogs, setFoodLogs] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_food_logs');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, meal: 'Breakfast', name: 'Oatmeal & Banana Smoothie', calories: 380, protein: 18, carbs: 54, fats: 8 },
+      { id: 2, meal: 'Lunch', name: 'Grilled Chicken & Quinoa Salad', calories: 520, protein: 42, carbs: 40, fats: 14 }
+    ];
+  });
+  const [foodForm, setFoodForm] = useState({ meal: 'Lunch', name: '', calories: '', protein: '', carbs: '', fats: '' });
+  const calorieGoal = 2200;
+
+  // Challenges State
+  const [challenges, setChallenges] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_challenges');
+    return saved ? JSON.parse(saved) : [
+      { id: 'sugar-cut', title: '7-Day Zero Sugar Challenge', desc: 'Avoid refined sugars for 7 full days', progress: 5, total: 7, joined: true, icon: '⚡', unit: 'Days' },
+      { id: 'cycling-50k', title: '50km Cycling Sprint', desc: 'Cover 50km total distance cycling this week', progress: 32.5, total: 50, joined: true, icon: '🚴', unit: 'km' },
+      { id: 'hydration-streak', title: '100% Hydration Goal Streak', desc: 'Reach 2,500ml daily water target for 5 consecutive days', progress: 4, total: 5, joined: true, icon: '💧', unit: 'Days' },
+      { id: 'caffeine-cutoff', title: '0 Caffeine After 2 PM', desc: 'Protect your deep sleep quality', progress: 3, total: 3, joined: false, icon: '☕', unit: 'Days' }
+    ];
+  });
+
+  // Save State Persistence
+  useEffect(() => {
+    localStorage.setItem('fitpulse_hydration', JSON.stringify(hydration));
+    localStorage.setItem('fitpulse_sugar_cut', JSON.stringify(sugarCut));
+    localStorage.setItem('fitpulse_active_burn', JSON.stringify(activeBurn));
+    localStorage.setItem('fitpulse_distance_km', JSON.stringify(distanceKm));
+    localStorage.setItem('fitpulse_google_connected', isGoogleConnected.toString());
+    localStorage.setItem('fitpulse_workouts', JSON.stringify(workouts));
+    localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
+    localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
+  }, [hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges]);
+
+  // Analytics Graph Datasets for Calories & Distance
+  const analyticsData = {
+    today: {
+      labels: ['08 AM', '10 AM', '12 PM', '02 PM', '04 PM', '06 PM', '08 PM'],
+      calories: [80, 140, 210, 180, 310, 480, 520],
+      distance: [1.2, 2.4, 3.1, 4.0, 5.5, 7.2, 7.8]
+    },
+    week: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      calories: [420, 560, 390, 610, 480, 720, 540],
+      distance: [5.4, 8.1, 4.2, 9.5, 7.2, 12.0, 8.4]
+    },
+    month: {
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      calories: [3200, 3900, 4100, 4500],
+      distance: [38.5, 46.2, 52.0, 58.4]
+    }
   };
 
-  // Calculate estimated half-life remaining active caffeine (5.7h half-life)
-  const remainingActiveCaffeine = Math.round(caffeineMg * 0.5);
+  const currentGraphData = analyticsData[graphTimeRange];
+  const maxCalorieValue = Math.max(...currentGraphData.calories);
+  const maxDistanceValue = Math.max(...currentGraphData.distance);
+
+  // Form Handlers
+  const handleAddWorkout = (e) => {
+    e.preventDefault();
+    if (!workoutForm.name || !workoutForm.duration || !workoutForm.calories) return;
+    switchAudio.playClickSound();
+
+    const newWorkout = {
+      id: Date.now(),
+      name: workoutForm.name,
+      type: workoutForm.type,
+      duration: parseInt(workoutForm.duration),
+      distance: workoutForm.distance ? parseFloat(workoutForm.distance) : 0,
+      calories: parseInt(workoutForm.calories),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setWorkouts([newWorkout, ...workouts]);
+    setActiveBurn(prev => prev + newWorkout.calories);
+    if (newWorkout.distance > 0) {
+      setDistanceKm(prev => parseFloat((prev + newWorkout.distance).toFixed(1)));
+    }
+    setWorkoutForm({ name: '', type: 'running', duration: '', distance: '', calories: '' });
+  };
+
+  const handleAddFood = (e) => {
+    e.preventDefault();
+    if (!foodForm.name || !foodForm.calories) return;
+    switchAudio.playClickSound();
+
+    const newFood = {
+      id: Date.now(),
+      meal: foodForm.meal,
+      name: foodForm.name,
+      calories: parseInt(foodForm.calories),
+      protein: foodForm.protein ? parseInt(foodForm.protein) : 0,
+      carbs: foodForm.carbs ? parseInt(foodForm.carbs) : 0,
+      fats: foodForm.fats ? parseInt(foodForm.fats) : 0
+    };
+
+    setFoodLogs([newFood, ...foodLogs]);
+    setFoodForm({ meal: 'Lunch', name: '', calories: '', protein: '', carbs: '', fats: '' });
+  };
+
+  const toggleChallengeJoin = (id) => {
+    switchAudio.playClickSound();
+    setChallenges(challenges.map(c => c.id === id ? { ...c, joined: !c.joined } : c));
+  };
+
+  const handleGoogleSync = () => {
+    setIsSyncing(true);
+    switchAudio.playClickSound();
+    setTimeout(() => {
+      setIsSyncing(false);
+      setIsGoogleConnected(true);
+      setIsGoogleModalOpen(false);
+    }, 1200);
+  };
+
+  const totalFoodCalories = foodLogs.reduce((sum, item) => sum + item.calories, 0);
+  const totalProtein = foodLogs.reduce((sum, item) => sum + item.protein, 0);
+  const totalCarbs = foodLogs.reduce((sum, item) => sum + item.carbs, 0);
+  const totalFats = foodLogs.reduce((sum, item) => sum + item.fats, 0);
 
   return (
-    <div className="w-full max-w-2xl mx-auto rounded-3xl overflow-hidden glass-panel border border-white/20 shadow-2xl flex flex-col my-4">
-      {/* Fitpulse Header */}
-      <div className="w-full p-4 border-b border-white/10 flex flex-col items-center gap-3">
-        <div className="flex items-center justify-between w-full px-2">
-          <div className="w-6 h-6" />
-          <h2 className="text-2xl font-black tracking-tight font-sans text-emerald-800 dark:text-emerald-400">
-            fitpulse
-          </h2>
+    <div className="w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border border-white/15 shadow-2xl flex flex-col my-4 bg-slate-950 text-slate-100">
+      
+      {/* 1. TOP HEADER BAR: Google Connect Status & Future Updates Banner */}
+      <div className="w-full p-4 border-b border-slate-800 flex flex-col gap-3 bg-slate-900/60 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-lg shadow-md">
+              ⚡
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-extrabold tracking-tight text-white font-sans">
+                  FITPULSE
+                </h2>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono uppercase font-bold">
+                  v3.2 LIVE
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 font-mono">Fitness, Hydration &amp; Challenge Engine</p>
+            </div>
+          </div>
+
+          {/* Google Connect Pill Button */}
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-neutral-400" />
-            <div className="w-7 h-7 rounded-full bg-emerald-700 text-white font-mono text-xs flex items-center justify-center font-bold">
-              Y
-            </div>
+            <button
+              onClick={() => {
+                switchAudio.playClickSound();
+                setIsGoogleModalOpen(true);
+              }}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-mono font-semibold flex items-center gap-2 transition-all border shadow-sm ${
+                isGoogleConnected 
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30' 
+                  : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>{isGoogleConnected ? 'Google Fit: Connected' : 'Connect Google Fit'}</span>
+            </button>
           </div>
         </div>
 
-        {/* Top Pill Navigation */}
-        <div className="flex items-center gap-2 overflow-x-auto py-1 px-2 no-scrollbar">
-          {[
-            { id: 'today', label: 'Today', icon: Home },
-            { id: 'caffeine', label: 'Caffeine Tracker', icon: Coffee },
-            { id: 'trends', label: 'Trends', icon: TrendingUp },
-            { id: 'sugar-cut', label: 'Sugar Cut', icon: Package },
-            { id: 'profile', label: 'Profile', icon: User }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isSelected = activeTab === tab.id;
-            return (
+        {/* Future Updates Notification Banner */}
+        <div className="flex items-center justify-between p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 font-mono">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
+            <span>Future Update Feature: Real-time Wearable &amp; Google Connect Auto-Sync Enabled</span>
+          </div>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">NEW</span>
+        </div>
+      </div>
+
+      {/* 2. TOP LEFT / UPPER ANALYTICS GRAPH INTERFACE (Today / Week / Month Switcher) */}
+      <div className="p-5 border-b border-slate-800 bg-slate-900/30 space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-400" />
+            <h3 className="text-sm font-bold tracking-wide uppercase font-mono text-slate-200">
+              Calorie Burn &amp; Distance Analytics
+            </h3>
+          </div>
+
+          {/* Time Range Selector: Today / Week / Month */}
+          <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
+            {['today', 'week', 'month'].map((range) => (
               <button
-                key={tab.id}
+                key={range}
                 onClick={() => {
-                  setActiveTab(tab.id);
                   switchAudio.playClickSound();
+                  setGraphTimeRange(range);
                 }}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  isSelected 
-                    ? 'bg-emerald-800 text-white shadow-md' 
-                    : 'bg-white/10 dark:bg-white/5 text-neutral-400 hover:text-neutral-100 border border-white/10'
+                className={`px-3 py-1 rounded-lg text-xs font-mono font-bold uppercase transition-all ${
+                  graphTimeRange === range 
+                    ? 'bg-emerald-500 text-slate-950 shadow-md' 
+                    : 'text-slate-400 hover:text-slate-100'
                 }`}
-                style={{ backgroundColor: isSelected ? primaryColor : undefined }}
               >
-                <Icon className="w-3.5 h-3.5" />
-                <span>{tab.label}</span>
+                {range}
               </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Main Fitpulse Content */}
-      <div className="p-6 flex flex-col items-center space-y-6">
-        {/* Main Card (Distance Progress Ring + 4 Stat Badges) */}
-        <div className="w-full max-w-md p-6 rounded-3xl bg-white/80 dark:bg-neutral-900/90 border border-black/5 dark:border-white/10 shadow-xl flex flex-col items-center">
-          {/* Circular Progress Ring */}
-          <div className="relative w-52 h-52 flex items-center justify-center my-2">
-            <svg width="200" height="200" viewBox="0 0 200 200" className="rotate-[-90deg]">
-              <circle
-                cx="100"
-                cy="100"
-                r="78"
-                fill="none"
-                stroke="#e2e8f0"
-                strokeWidth="16"
-                strokeDasharray="490"
-                strokeDashoffset="122"
-                strokeLinecap="round"
-                className="dark:stroke-neutral-800"
-              />
-              <circle
-                cx="100"
-                cy="100"
-                r="78"
-                fill="none"
-                stroke={primaryColor}
-                strokeWidth="16"
-                strokeDasharray="490"
-                strokeDashoffset={490 - (490 * (distanceKm / 10))}
-                strokeLinecap="round"
-                className="transition-all duration-700"
-              />
-            </svg>
-
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <Footprints className="w-6 h-6 mb-1" style={{ color: primaryColor }} />
-              <span className="text-3xl font-extrabold font-sans tracking-tight">
-                {distanceKm}
-              </span>
-              <span className="text-xs font-medium text-neutral-400">
-                Kilometers Covered
-              </span>
-            </div>
-          </div>
-
-          {/* 4 Stat Badges: Hydration, Caffeine, Sugar Cut, Active Burn */}
-          <div className="grid grid-cols-4 gap-2 w-full pt-4 mt-2 border-t border-black/5 dark:border-white/10 justify-items-center">
-            {/* Hydration */}
-            <div 
-              onClick={() => setHydration(prev => (prev + 10) % 100)}
-              className="flex flex-col items-center space-y-1 cursor-pointer group"
-            >
-              <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm"
-                style={{ backgroundColor: `${primaryColor}20`, border: `2px solid ${primaryColor}` }}
-              >
-                <Droplets className="w-5 h-5" style={{ color: primaryColor }} />
-              </div>
-              <span className="text-xs font-bold">{hydration}%</span>
-              <span className="text-[9px] text-neutral-400 font-mono">Hydration</span>
-            </div>
-
-            {/* Caffeine Usage Badge */}
-            <div 
-              onClick={() => setActiveTab('caffeine')}
-              className="flex flex-col items-center space-y-1 cursor-pointer group"
-            >
-              <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm bg-amber-500/20 border-2 border-amber-500"
-              >
-                <Coffee className="w-5 h-5 text-amber-500" />
-              </div>
-              <span className="text-xs font-bold text-amber-500">{caffeineMg}mg</span>
-              <span className="text-[9px] text-neutral-400 font-mono">Caffeine</span>
-            </div>
-
-            {/* Sugar Cut */}
-            <div 
-              onClick={() => setSugarCut(prev => prev + 2)}
-              className="flex flex-col items-center space-y-1 cursor-pointer group"
-            >
-              <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm"
-                style={{ backgroundColor: `${primaryColor}20`, border: `2px solid ${primaryColor}` }}
-              >
-                <Package className="w-5 h-5" style={{ color: primaryColor }} />
-              </div>
-              <span className="text-xs font-bold">{sugarCut}g</span>
-              <span className="text-[9px] text-neutral-400 font-mono">Sugar Cut</span>
-            </div>
-
-            {/* Active Burn */}
-            <div 
-              onClick={() => setActiveBurn(prev => prev + 25)}
-              className="flex flex-col items-center space-y-1 cursor-pointer group"
-            >
-              <div 
-                className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm"
-                style={{ backgroundColor: `${primaryColor}20`, border: `2px solid ${primaryColor}` }}
-              >
-                <Flame className="w-5 h-5" style={{ color: primaryColor }} />
-              </div>
-              <span className="text-xs font-bold">{activeBurn}</span>
-              <span className="text-[9px] text-neutral-400 font-mono">Active Burn</span>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Professional Caffeine Usage & Metabolism Section */}
-        <div className="w-full max-w-md p-5 rounded-3xl bg-white/80 dark:bg-neutral-900/90 border border-black/5 dark:border-white/10 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30">
-                <Coffee className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold tracking-tight">PROFESSIONAL CAFFEINE TRACKER</h3>
-                <p className="text-[10px] text-neutral-400 font-mono">FDA Daily Limit: {caffeineLimitMg} mg</p>
-              </div>
-            </div>
-            <span className="text-xs font-bold font-mono px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30">
-              {caffeineMg} / {caffeineLimitMg} mg
-            </span>
-          </div>
-
-          {/* Caffeine Progress Gauge Bar */}
-          <div className="space-y-1.5">
-            <div className="w-full h-3 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden p-0.5 border border-white/10">
-              <div 
-                className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-emerald-500 via-amber-500 to-red-500"
-                style={{ width: `${Math.min((caffeineMg / caffeineLimitMg) * 100, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[9px] font-mono text-neutral-400">
-              <span>0 mg (Clean)</span>
-              <span>200 mg (Focus Window)</span>
-              <span>400 mg (Max Limit)</span>
-            </div>
-          </div>
-
-          {/* Half-Life & Sleep Readiness Gauge */}
-          <div className="grid grid-cols-2 gap-3 pt-2">
-            <div className="p-3 rounded-2xl bg-black/40 border border-white/10 flex items-center gap-2.5">
-              <Clock className="w-5 h-5 text-amber-400" />
-              <div>
-                <span className="text-[10px] font-mono text-neutral-400 block">Est. Active Level</span>
-                <span className="text-sm font-bold font-mono text-amber-300">~{remainingActiveCaffeine} mg</span>
-              </div>
+        {/* Dual Analytics Graphs (Calories & Distance) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Graph 1: Calories Burned Graph */}
+          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div className="flex justify-between items-center text-xs font-mono">
+              <span className="text-orange-400 font-bold flex items-center gap-1">
+                <Flame className="w-3.5 h-3.5" /> Calories Burned ({graphTimeRange})
+              </span>
+              <span className="text-slate-400">Peak: {maxCalorieValue} kcal</span>
             </div>
 
-            <div className="p-3 rounded-2xl bg-black/40 border border-white/10 flex items-center gap-2.5">
-              <Moon className="w-5 h-5 text-indigo-400" />
-              <div>
-                <span className="text-[10px] font-mono text-neutral-400 block">Cutoff Time</span>
-                <span className="text-sm font-bold font-mono text-indigo-300">02:00 PM</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Log Drink Buttons */}
-          <div className="space-y-2 pt-2 border-t border-white/10">
-            <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-widest">LOG CAFFEINE DRINK</span>
-            <div className="grid grid-cols-2 gap-2">
-              {DRINK_PRESETS.map(preset => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleAddCaffeine(preset)}
-                  className="p-2.5 rounded-xl bg-white/5 hover:bg-amber-500/20 border border-white/10 hover:border-amber-500/40 text-xs font-mono flex items-center justify-between transition-all group"
-                >
-                  <span className="flex items-center gap-1.5">
-                    <span>{preset.icon}</span>
-                    <span className="font-medium group-hover:text-amber-400">{preset.name}</span>
-                  </span>
-                  <span className="text-amber-500 font-bold">+{preset.caffeineMg}mg</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Recent Log History */}
-          {caffeineLogHistory.length > 0 && (
-            <div className="pt-2 border-t border-white/10 space-y-1.5">
-              <span className="text-[9px] font-mono text-neutral-400 uppercase">TODAY'S CAFFEINE LOG</span>
-              <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
-                {caffeineLogHistory.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-xs font-mono p-1.5 rounded-lg bg-black/30 text-neutral-300">
-                    <span>☕ {item.name}</span>
-                    <span className="text-amber-400 font-bold">{item.mg} mg ({item.time})</span>
+            {/* Custom SVG / HTML Bar Chart */}
+            <div className="h-32 flex items-end justify-between gap-2 pt-4 px-1">
+              {currentGraphData.calories.map((val, idx) => {
+                const heightPct = Math.max(15, Math.round((val / maxCalorieValue) * 100));
+                return (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    {/* Hover Value Badge */}
+                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-orange-500 text-slate-950 px-1.5 py-0.5 rounded shadow">
+                      {val}k
+                    </div>
+                    <div 
+                      className="w-full rounded-t-lg bg-gradient-to-t from-orange-600 to-amber-400 transition-all duration-500 group-hover:brightness-125"
+                      style={{ height: `${heightPct}%` }}
+                    />
+                    <span className="text-[9px] font-mono text-slate-400">{currentGraphData.labels[idx]}</span>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          )}
-        </div>
-
-        {/* Weather Hydration Banner */}
-        <div className="w-full max-w-md p-3.5 rounded-2xl bg-white/70 dark:bg-neutral-900/80 border border-black/5 dark:border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <CloudSun className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            <span className="text-sm font-bold text-neutral-800 dark:text-neutral-100">
-              Weather Hydration
-            </span>
           </div>
-          <span 
-            className="px-3 py-1 rounded-full text-xs font-bold font-mono"
-            style={{ backgroundColor: `${primaryColor}25`, color: primaryColor }}
-          >
-            26.9°C | 64% Humidity
-          </span>
+
+          {/* Graph 2: Distance Travelled Graph */}
+          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div className="flex justify-between items-center text-xs font-mono">
+              <span className="text-emerald-400 font-bold flex items-center gap-1">
+                <Footprints className="w-3.5 h-3.5" /> Distance Covered ({graphTimeRange})
+              </span>
+              <span className="text-slate-400">Peak: {maxDistanceValue} km</span>
+            </div>
+
+            {/* Custom SVG / HTML Bar Chart */}
+            <div className="h-32 flex items-end justify-between gap-2 pt-4 px-1">
+              {currentGraphData.distance.map((val, idx) => {
+                const heightPct = Math.max(15, Math.round((val / maxDistanceValue) * 100));
+                return (
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
+                    {/* Hover Value Badge */}
+                    <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-mono font-bold bg-emerald-400 text-slate-950 px-1.5 py-0.5 rounded shadow">
+                      {val}km
+                    </div>
+                    <div 
+                      className="w-full rounded-t-lg bg-gradient-to-t from-emerald-600 to-teal-300 transition-all duration-500 group-hover:brightness-125"
+                      style={{ height: `${heightPct}%` }}
+                    />
+                    <span className="text-[9px] font-mono text-slate-400">{currentGraphData.labels[idx]}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <div className="w-full p-3 border-t border-black/5 dark:border-white/10 bg-white/90 dark:bg-neutral-950/90 flex items-center justify-around">
+      {/* 3. MAIN TAB CONTENT AREA */}
+      <div className="p-6 flex-1 min-h-[380px]">
+        
+        {/* TAB 1: DASHBOARD */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Circular Distance Progress Ring */}
+              <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 flex flex-col items-center justify-center">
+                <div className="relative w-48 h-48 flex items-center justify-center">
+                  <svg width="180" height="180" viewBox="0 0 180 180" className="rotate-[-90deg]">
+                    <circle cx="90" cy="90" r="70" fill="none" stroke="#1e293b" strokeWidth="14" />
+                    <circle 
+                      cx="90" 
+                      cy="90" 
+                      r="70" 
+                      fill="none" 
+                      stroke="#10b981" 
+                      strokeWidth="14" 
+                      strokeDasharray="440"
+                      strokeDashoffset={440 - (440 * Math.min(distanceKm / 10, 1))}
+                      strokeLinecap="round"
+                      className="transition-all duration-700"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <Footprints className="w-6 h-6 text-emerald-400 mb-1" />
+                    <span className="text-3xl font-extrabold font-mono text-white">{distanceKm}</span>
+                    <span className="text-xs text-slate-400 font-mono">Kilometers Today</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4 Stat Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Hydration */}
+                <div 
+                  onClick={() => setHydration(prev => (prev + 10) % 110)}
+                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-blue-500/40 cursor-pointer transition-all space-y-2 group"
+                >
+                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400 w-fit group-hover:scale-110 transition-transform">
+                    <Droplets className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-blue-300 font-mono">{hydration}%</div>
+                    <span className="text-[10px] text-slate-400 font-mono uppercase">Hydration Level</span>
+                  </div>
+                </div>
+
+                {/* Active Burn */}
+                <div 
+                  onClick={() => setActiveBurn(prev => prev + 50)}
+                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-orange-500/40 cursor-pointer transition-all space-y-2 group"
+                >
+                  <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-400 w-fit group-hover:scale-110 transition-transform">
+                    <Flame className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-orange-300 font-mono">{activeBurn} kcal</div>
+                    <span className="text-[10px] text-slate-400 font-mono uppercase">Active Burn</span>
+                  </div>
+                </div>
+
+                {/* Sugar Cut */}
+                <div 
+                  onClick={() => setSugarCut(prev => prev + 2)}
+                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all space-y-2 group"
+                >
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 w-fit group-hover:scale-110 transition-transform">
+                    <Package className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-emerald-300 font-mono">{sugarCut}g</div>
+                    <span className="text-[10px] text-slate-400 font-mono uppercase">Sugar Avoided</span>
+                  </div>
+                </div>
+
+                {/* Daily Calorie Intake */}
+                <div 
+                  onClick={() => setActiveTab('food')}
+                  className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 cursor-pointer transition-all space-y-2 group"
+                >
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 w-fit group-hover:scale-110 transition-transform">
+                    <UtensilsCrossed className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-amber-300 font-mono">{totalFoodCalories} / {calorieGoal}</div>
+                    <span className="text-[10px] text-slate-400 font-mono uppercase">Calories Consumed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Weather Hydration Banner */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CloudSun className="w-6 h-6 text-emerald-400" />
+                <div>
+                  <div className="text-sm font-bold text-slate-200">Optimal Weather Hydration</div>
+                  <span className="text-xs text-slate-400 font-mono">26.9°C Ambient Temperature | 64% Relative Humidity</span>
+                </div>
+              </div>
+              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
+                RECOMMENDED: +500ml
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: WORKOUT */}
+        {activeTab === 'workout' && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Workout Logger Form */}
+              <form onSubmit={handleAddWorkout} className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Dumbbell className="w-5 h-5 text-emerald-400" />
+                  <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Log Workout Activity</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Activity Name</label>
+                    <input 
+                      type="text"
+                      placeholder="e.g. Morning Highway Ride"
+                      value={workoutForm.name}
+                      onChange={e => setWorkoutForm({ ...workoutForm, name: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Workout Type</label>
+                      <select 
+                        value={workoutForm.type}
+                        onChange={e => setWorkoutForm({ ...workoutForm, type: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                      >
+                        <option value="running">🏃 Running</option>
+                        <option value="cycling">🚴 Cycling</option>
+                        <option value="swimming">🏊 Swimming</option>
+                        <option value="gym">🏋️ Gym / Weights</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Duration (mins)</label>
+                      <input 
+                        type="number"
+                        placeholder="e.g. 45"
+                        value={workoutForm.duration}
+                        onChange={e => setWorkoutForm({ ...workoutForm, duration: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Distance (km)</label>
+                      <input 
+                        type="number"
+                        step="0.1"
+                        placeholder="e.g. 15.4"
+                        value={workoutForm.distance}
+                        onChange={e => setWorkoutForm({ ...workoutForm, distance: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Calories Burned</label>
+                      <input 
+                        type="number"
+                        placeholder="e.g. 320"
+                        value={workoutForm.calories}
+                        onChange={e => setWorkoutForm({ ...workoutForm, calories: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-md flex items-center justify-center gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" /> Save Workout Log
+                  </button>
+                </div>
+              </form>
+
+              {/* Workout History Feed */}
+              <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3 flex flex-col">
+                <h3 className="text-sm font-bold uppercase font-mono text-slate-200 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-400" /> Logged Workouts Feed
+                </h3>
+
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {workouts.map(item => (
+                    <div key={item.id} className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-lg">
+                          {item.type === 'cycling' ? '🚴' : item.type === 'swimming' ? '🏊' : item.type === 'gym' ? '🏋️' : '🏃'}
+                        </span>
+                        <div>
+                          <div className="text-xs font-bold text-slate-100">{item.name}</div>
+                          <span className="text-[10px] text-slate-400 font-mono">{item.duration} mins • {item.time}</span>
+                        </div>
+                      </div>
+                      <div className="text-right font-mono">
+                        <div className="text-xs font-bold text-orange-400">+{item.calories} kcal</div>
+                        {item.distance > 0 && <span className="text-[10px] text-emerald-400">{item.distance} km</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: FOOD AND CALORIES */}
+        {activeTab === 'food' && (
+          <div className="space-y-6">
+            {/* Calorie Goal Progress Card */}
+            <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between text-xs font-mono">
+                <span className="text-slate-300 font-bold">DAILY CALORIE BUDGET</span>
+                <span className="text-amber-400 font-bold">{totalFoodCalories} / {calorieGoal} kcal</span>
+              </div>
+              <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                <div 
+                  className="bg-gradient-to-r from-amber-500 via-orange-500 to-emerald-400 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round((totalFoodCalories / calorieGoal) * 100))}%` }}
+                />
+              </div>
+
+              {/* Macro Nutrients Breakdown */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-center font-mono">
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">PROTEIN</span>
+                  <span className="text-sm font-bold text-emerald-400">{totalProtein}g</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">CARBS</span>
+                  <span className="text-sm font-bold text-amber-400">{totalCarbs}g</span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <span className="text-[10px] text-slate-400 block">FATS</span>
+                  <span className="text-sm font-bold text-orange-400">{totalFats}g</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Add Food Form */}
+              <form onSubmit={handleAddFood} className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+                <div className="flex items-center gap-2">
+                  <UtensilsCrossed className="w-5 h-5 text-amber-400" />
+                  <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Log Meal &amp; Calories</h3>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Meal Time</label>
+                    <select 
+                      value={foodForm.meal}
+                      onChange={e => setFoodForm({ ...foodForm, meal: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="Breakfast">🍳 Breakfast</option>
+                      <option value="Lunch">🥗 Lunch</option>
+                      <option value="Dinner">🍲 Dinner</option>
+                      <option value="Snacks">🍎 Snacks</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Calories</label>
+                    <input 
+                      type="number"
+                      placeholder="e.g. 450"
+                      value={foodForm.calories}
+                      onChange={e => setFoodForm({ ...foodForm, calories: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-mono text-slate-400 uppercase block mb-1">Food Item Description</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Grilled Chicken & Rice"
+                    value={foodForm.name}
+                    onChange={e => setFoodForm({ ...foodForm, name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <input 
+                    type="number" 
+                    placeholder="Protein (g)"
+                    value={foodForm.protein}
+                    onChange={e => setFoodForm({ ...foodForm, protein: e.target.value })}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none"
+                  />
+                  <input 
+                    type="number" 
+                    placeholder="Carbs (g)"
+                    value={foodForm.carbs}
+                    onChange={e => setFoodForm({ ...foodForm, carbs: e.target.value })}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none"
+                  />
+                  <input 
+                    type="number" 
+                    placeholder="Fats (g)"
+                    value={foodForm.fats}
+                    onChange={e => setFoodForm({ ...foodForm, fats: e.target.value })}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-md flex items-center justify-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" /> Add Food Log
+                </button>
+              </form>
+
+              {/* Food Logs List */}
+              <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+                <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Today's Meals</h3>
+                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  {foodLogs.map(item => (
+                    <div key={item.id} className="p-3 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-amber-400 font-mono uppercase font-bold">{item.meal}</span>
+                        <div className="text-xs font-bold text-slate-100">{item.name}</div>
+                      </div>
+                      <div className="text-right font-mono text-xs font-bold text-slate-200">
+                        {item.calories} kcal
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: GOALS AND CHALLENGES */}
+        {activeTab === 'goals' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-400" />
+                <h3 className="text-sm font-bold uppercase font-mono text-slate-200">Fitness Challenges &amp; Burn Goals</h3>
+              </div>
+              <span className="text-xs font-mono text-slate-400">4 Active Challenges</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {challenges.map(c => {
+                const pct = Math.min(100, Math.round((c.progress / c.total) * 100));
+                return (
+                  <div key={c.id} className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3 hover:border-amber-500/40 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl p-2 rounded-2xl bg-slate-950 border border-slate-800">{c.icon}</span>
+                        <div>
+                          <div className="text-sm font-bold text-slate-100">{c.title}</div>
+                          <p className="text-xs text-slate-400">{c.desc}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-mono text-slate-300">
+                        <span>Progress</span>
+                        <span className="font-bold text-emerald-400">{c.progress} / {c.total} {c.unit} ({pct}%)</span>
+                      </div>
+                      <div className="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                        <div className="bg-gradient-to-r from-emerald-500 to-teal-300 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        onClick={() => toggleChallengeJoin(c.id)}
+                        className={`px-4 py-1.5 rounded-full text-xs font-mono font-bold uppercase transition-all shadow-sm ${
+                          c.joined 
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                            : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                        }`}
+                      >
+                        {c.joined ? 'Joined & Active ✓' : 'Join Challenge'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* 4. BOTTOM NAVIGATION BAR (4 MAIN TABS) */}
+      <div className="w-full p-3 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md flex items-center justify-around">
         {[
-          { id: 'today', label: 'Today', icon: Compass },
-          { id: 'caffeine', label: 'Caffeine', icon: Coffee },
-          { id: 'trends', label: 'Trends', icon: BarChart3 },
-          { id: 'coach', label: 'Coach', icon: ClipboardList },
-          { id: 'you', label: 'You', icon: User }
-        ].map((item) => {
-          const Icon = item.icon;
-          const isSelected = activeTab === item.id;
+          { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+          { id: 'workout', label: 'Workout', icon: Dumbbell },
+          { id: 'food', label: 'Food & Calories', icon: UtensilsCrossed },
+          { id: 'goals', label: 'Goals & Challenges', icon: Trophy }
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isSelected = activeTab === tab.id;
           return (
             <button
-              key={item.id}
+              key={tab.id}
               onClick={() => {
-                setActiveTab(item.id);
                 switchAudio.playClickSound();
+                setActiveTab(tab.id);
               }}
-              className="flex flex-col items-center gap-1 group"
+              className={`flex flex-col items-center gap-1 transition-all group ${
+                isSelected ? 'scale-105' : 'opacity-70 hover:opacity-100'
+              }`}
             >
               <div 
-                className={`p-1.5 rounded-full transition-all ${
-                  isSelected ? 'bg-emerald-100 dark:bg-emerald-950' : ''
+                className={`p-2 rounded-2xl transition-all ${
+                  isSelected ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-400 group-hover:text-slate-200'
                 }`}
               >
-                <Icon className="w-5 h-5" style={{ color: isSelected ? primaryColor : '#94a3b8' }} />
+                <Icon className="w-5 h-5" />
               </div>
-              <span 
-                className="text-[10px] font-semibold"
-                style={{ color: isSelected ? primaryColor : '#94a3b8' }}
-              >
-                {item.label}
+              <span className={`text-[10px] font-mono font-bold tracking-tight ${isSelected ? 'text-emerald-400' : 'text-slate-400'}`}>
+                {tab.label}
               </span>
             </button>
           );
         })}
       </div>
+
+      {/* 5. GOOGLE CONNECT MODAL */}
+      {isGoogleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-5 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <h3 className="text-base font-bold text-slate-100">Google Fit Connect</h3>
+              </div>
+              <button 
+                onClick={() => setIsGoogleModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-300">
+              <p>Authorize FitPulse to sync your daily steps, active workout duration, and calories burned automatically with Google Fit.</p>
+              
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 font-mono text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Account:</span>
+                  <span className="text-slate-200 font-bold">yadhukrishnan7717@gmail.com</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Status:</span>
+                  <span className={isGoogleConnected ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                    {isGoogleConnected ? 'SYNCED & ACTIVE' : 'READY TO AUTHORIZE'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleGoogleSync}
+              disabled={isSyncing}
+              className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              {isSyncing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Syncing with Google Fit...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>{isGoogleConnected ? 'Re-Sync Account Data' : 'Authorize & Connect Google Fit'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

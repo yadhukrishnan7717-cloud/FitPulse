@@ -528,7 +528,31 @@ export const FitpulseApp = () => {
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Community Chat 💬 */}
+          <button
+            onClick={() => {
+              triggerClickSound();
+              setIsCommunityChatOpen(true);
+            }}
+            className="p-2 rounded-full bg-[#18181b] text-indigo-400 hover:bg-slate-800 border border-slate-800 transition-all"
+            title="Open Community Chat"
+          >
+            <MessageSquare className="w-4 h-4" />
+          </button>
+
+          {/* Graphs 📊 */}
+          <button
+            onClick={() => {
+              triggerClickSound();
+              setIsAnalyticsModalOpen(true);
+            }}
+            className="p-2 rounded-full bg-[#18181b] text-emerald-400 hover:bg-slate-800 border border-slate-800 transition-all"
+            title="Open Analytics Graphs"
+          >
+            <BarChart3 className="w-4 h-4" />
+          </button>
+
           {/* Settings Button ⚙️ */}
           <button
             onClick={() => {
@@ -553,7 +577,7 @@ export const FitpulseApp = () => {
         </div>
       </div>
 
-      {/* 2. MAIN RED STREAK CARD BANNER (Match Uploaded Screenshot UI) */}
+      {/* 2. MAIN RED STREAK CARD BANNER */}
       <div className="px-5 mb-5">
         <div className="w-full bg-gradient-to-r from-red-900 via-rose-900 to-red-950 border border-rose-800/80 rounded-3xl p-5 shadow-2xl flex items-center justify-between text-white relative overflow-hidden">
           <div className="flex items-center gap-3.5 z-10">
@@ -575,172 +599,531 @@ export const FitpulseApp = () => {
         </div>
       </div>
 
-      {/* 3. THREE STAT RECTANGULAR CARDS ROW (XP, Workouts, Active Mins) */}
-      <div className="px-5 mb-5 grid grid-cols-3 gap-3">
-        {/* Card 1: Total XP */}
-        <div 
-          onClick={() => openQuickLog('burn')}
-          className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
-        >
-          <Flame className="w-5 h-5 mx-auto text-orange-400" />
-          <div className="text-base font-extrabold font-mono text-white">{totalXp}</div>
-          <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Total XP</span>
-        </div>
-
-        {/* Card 2: Workouts Logged */}
-        <div 
-          onClick={() => setActiveTab('workout')}
-          className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
-        >
-          <Dumbbell className="w-5 h-5 mx-auto text-emerald-400" />
-          <div className="text-base font-extrabold font-mono text-white">{workouts.length}</div>
-          <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Workouts</span>
-        </div>
-
-        {/* Card 3: Active Mins */}
-        <div 
-          onClick={() => setIsAnalyticsModalOpen(true)}
-          className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
-        >
-          <Clock className="w-5 h-5 mx-auto text-cyan-400" />
-          <div className="text-base font-extrabold font-mono text-white">35</div>
-          <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Minutes</span>
-        </div>
-      </div>
-
-      {/* 4. FOUR VIBRANT CIRCULAR ACTION BUTTONS ROW (Yellow 🟡, White ⚪, Dark Ring ⚫, Red 🔴) */}
-      <div className="px-5 mb-6 flex items-center justify-between">
-        {/* Yellow Circle: Workout */}
-        <button
-          onClick={() => {
-            triggerClickSound();
-            setActiveTab('workout');
-          }}
-          className="w-16 h-16 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform relative"
-          title="Workout Activities"
-        >
-          <Dumbbell className="w-7 h-7" />
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-600 text-white text-[10px] font-mono font-bold flex items-center justify-center border border-slate-950">
-            ★
-          </span>
-        </button>
-
-        {/* White Circle: Food & Nutrition */}
-        <button
-          onClick={() => {
-            triggerClickSound();
-            setActiveTab('food');
-          }}
-          className="w-16 h-16 rounded-full bg-slate-100 hover:bg-white text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-          title="Meals & Nutrition"
-        >
-          <UtensilsCrossed className="w-7 h-7 text-red-600" />
-        </button>
-
-        {/* Dark Ring Circle: Hydration */}
-        <button
-          onClick={() => openQuickLog('hydration')}
-          className="w-16 h-16 rounded-full bg-[#18181b] border-2 border-slate-700 hover:border-blue-400 text-blue-400 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-          title="Hydration Intake"
-        >
-          <Droplets className="w-7 h-7" />
-        </button>
-
-        {/* Red Circle: Challenges & Goals */}
-        <button
-          onClick={() => {
-            triggerClickSound();
-            setActiveTab('goals');
-          }}
-          className="w-16 h-16 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-          title="Goals & Challenges"
-        >
-          <Trophy className="w-7 h-7" />
-        </button>
-      </div>
-
-      {/* 5. QUICK START FEATURED CARD BANNER (Matches Screenshot UI) */}
-      <div className="px-5 mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-300">Quick Start</h2>
-          <button onClick={() => setIsAnalyticsModalOpen(true)} className="text-xs font-mono text-rose-500 hover:underline">View All</button>
-        </div>
-
-        <div className="w-full rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-800 p-5 shadow-2xl relative overflow-hidden space-y-3">
-          {/* Top Badges */}
-          <div className="flex items-center gap-2 text-[10px] font-mono font-bold">
-            <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-              <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> +10 XP
-            </span>
-            <span className="px-2.5 py-1 rounded-full bg-slate-700/50 text-slate-300 flex items-center gap-1">
-              <Clock className="w-3 h-3" /> 5 min
-            </span>
-            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> 0% Completed
-            </span>
-          </div>
-
-          <div>
-            <h3 className="text-xl font-serif font-extrabold text-white tracking-tight leading-tight">
-              Fitness Training, Rewritten.
-            </h3>
-            <p className="text-xs font-mono text-slate-400 mt-1">
-              Daily Circuit • Part 1 • Lesson 1
-            </p>
-          </div>
-
-          <div className="pt-2 flex justify-end">
-            <button 
+      {/* 3. DYNAMIC TAB CONTENT VIEWS (Dashboard, Workout, Food, Goals) */}
+      
+      {/* TAB 1: DASHBOARD / HOME */}
+      {activeTab === 'dashboard' && (
+        <div className="space-y-6">
+          {/* Three Stat Cards Row (XP, Workouts, Active Mins) */}
+          <div className="px-5 grid grid-cols-3 gap-3">
+            <div 
               onClick={() => openQuickLog('burn')}
-              className="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+              className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <Play className="w-5 h-5 fill-white ml-0.5" />
+              <Flame className="w-5 h-5 mx-auto text-orange-400" />
+              <div className="text-base font-extrabold font-mono text-white">{totalXp}</div>
+              <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Total XP</span>
+            </div>
+
+            <div 
+              onClick={() => setActiveTab('workout')}
+              className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
+            >
+              <Dumbbell className="w-5 h-5 mx-auto text-emerald-400" />
+              <div className="text-base font-extrabold font-mono text-white">{workouts.length}</div>
+              <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Workouts</span>
+            </div>
+
+            <div 
+              onClick={() => setIsAnalyticsModalOpen(true)}
+              className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
+            >
+              <Clock className="w-5 h-5 mx-auto text-cyan-400" />
+              <div className="text-base font-extrabold font-mono text-white">35</div>
+              <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Minutes</span>
+            </div>
+          </div>
+
+          {/* Four Circular Action Buttons Row */}
+          <div className="px-5 flex items-center justify-between">
+            <button
+              onClick={() => {
+                triggerClickSound();
+                setActiveTab('workout');
+              }}
+              className="w-16 h-16 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform relative"
+              title="Workout Activities"
+            >
+              <Dumbbell className="w-7 h-7" />
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-600 text-white text-[10px] font-mono font-bold flex items-center justify-center border border-slate-950">★</span>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerClickSound();
+                setActiveTab('food');
+              }}
+              className="w-16 h-16 rounded-full bg-slate-100 hover:bg-white text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              title="Meals & Nutrition"
+            >
+              <UtensilsCrossed className="w-7 h-7 text-red-600" />
+            </button>
+
+            <button
+              onClick={() => openQuickLog('hydration')}
+              className="w-16 h-16 rounded-full bg-[#18181b] border-2 border-slate-700 hover:border-blue-400 text-blue-400 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              title="Hydration Intake"
+            >
+              <Droplets className="w-7 h-7" />
+            </button>
+
+            <button
+              onClick={() => {
+                triggerClickSound();
+                setActiveTab('goals');
+              }}
+              className="w-16 h-16 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              title="Goals & Challenges"
+            >
+              <Trophy className="w-7 h-7" />
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* 6. DAILY QUEST SECTION (Matches Screenshot UI) */}
-      <div className="px-5 mb-6 space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-300">Daily Quest</h2>
-          <span className="text-xs font-mono text-slate-400">
-            {dailyQuests.filter(q => q.completed).length} / {dailyQuests.length}
-          </span>
-        </div>
+          {/* Quick Start Featured Card Banner */}
+          <div className="px-5">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-300">Quick Start</h2>
+              <button onClick={() => setIsAnalyticsModalOpen(true)} className="text-xs font-mono text-rose-500 hover:underline">View All</button>
+            </div>
 
-        <div className="space-y-2.5">
-          {dailyQuests.map(quest => (
-            <div 
-              key={quest.id}
-              onClick={() => toggleQuest(quest.id)}
-              className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                quest.completed ? 'bg-emerald-950/20 border-emerald-800/60' : cardBgClass
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl ${quest.completed ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}`}>
-                  <Clock className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className={`text-xs font-bold font-mono ${quest.completed ? 'line-through text-slate-400' : 'text-white'}`}>
-                    {quest.title}
-                  </div>
-                  <span className={`text-[10px] ${mutedTextClass}`}>{quest.desc}</span>
-                </div>
+            <div className="w-full rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-800 p-5 shadow-2xl relative overflow-hidden space-y-3">
+              <div className="flex items-center gap-2 text-[10px] font-mono font-bold">
+                <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                  <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> +10 XP
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-slate-700/50 text-slate-300 flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> 5 min
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> 0% Completed
+                </span>
               </div>
 
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                quest.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-600'
-              }`}>
-                {quest.completed && <Check className="w-4 h-4 stroke-[3]" />}
+              <div>
+                <h3 className="text-xl font-serif font-extrabold text-white tracking-tight leading-tight">
+                  Fitness Training, Rewritten.
+                </h3>
+                <p className="text-xs font-mono text-slate-400 mt-1">
+                  Daily Circuit • Part 1 • Lesson 1
+                </p>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button 
+                  onClick={() => openQuickLog('burn')}
+                  className="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+                >
+                  <Play className="w-5 h-5 fill-white ml-0.5" />
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* 7. FLOATING PILL BOTTOM NAVIGATION BAR (Matches Uploaded Screenshot UI) */}
+          {/* Daily Quests Section */}
+          <div className="px-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-300">Daily Quest</h2>
+              <span className="text-xs font-mono text-slate-400">
+                {dailyQuests.filter(q => q.completed).length} / {dailyQuests.length}
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              {dailyQuests.map(quest => (
+                <div 
+                  key={quest.id}
+                  onClick={() => toggleQuest(quest.id)}
+                  className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                    quest.completed ? 'bg-emerald-950/20 border-emerald-800/60' : cardBgClass
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl ${quest.completed ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}`}>
+                      <Clock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className={`text-xs font-bold font-mono ${quest.completed ? 'line-through text-slate-400' : 'text-white'}`}>
+                        {quest.title}
+                      </div>
+                      <span className={`text-[10px] ${mutedTextClass}`}>{quest.desc}</span>
+                    </div>
+                  </div>
+
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                    quest.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-600'
+                  }`}>
+                    {quest.completed && <Check className="w-4 h-4 stroke-[3]" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Geolocation Weather Hydration Banner */}
+          <div className="px-5 pb-4">
+            <div className={`p-4.5 rounded-3xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${cardBgClass}`}>
+              <div className="flex items-center gap-3">
+                <CloudSun className="w-7 h-7 text-emerald-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-mono font-bold uppercase flex items-center gap-1.5 text-emerald-400">
+                    <MapPin className="w-3.5 h-3.5" /> {locationStatus}
+                  </div>
+                  <div className="text-xs font-mono text-slate-300 mt-0.5">
+                    {tempCelsius}°C Ambient Temp | {humidityPct}% Humidity
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleDetectLocation}
+                  disabled={isDetectingLocation}
+                  className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-mono font-bold flex items-center gap-1 shadow-sm transition-all"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isDetectingLocation ? 'animate-spin' : ''}`} />
+                  <span>{isDetectingLocation ? 'Locating...' : 'GPS 📍'}</span>
+                </button>
+                <span className="text-[11px] font-mono font-bold text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/30">
+                  +{recommendedExtraWaterMl}ml
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: WORKOUT LOGGING TAB */}
+      {activeTab === 'workout' && (
+        <div className="px-5 space-y-5 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Dumbbell className="w-5 h-5 text-amber-400" />
+              <h2 className="text-base font-bold uppercase font-mono text-white">Workout Activity Tracker</h2>
+            </div>
+            <button onClick={() => setActiveTab('dashboard')} className="text-xs font-mono text-slate-400 hover:text-white">← Back</button>
+          </div>
+
+          {/* Workout Logger Form */}
+          <form onSubmit={handleAddWorkout} className={`p-5 rounded-3xl border space-y-4 ${cardBgClass}`}>
+            <div className="space-y-3">
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Activity Name</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Morning Highway Ride"
+                  value={workoutForm.name}
+                  onChange={e => setWorkoutForm({ ...workoutForm, name: e.target.value })}
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-400 ${subCardBgClass}`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Workout Type</label>
+                  <select 
+                    value={workoutForm.type}
+                    onChange={e => setWorkoutForm({ ...workoutForm, type: e.target.value })}
+                    className={`w-full px-3 py-2.5 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-400 ${subCardBgClass}`}
+                  >
+                    <option value="running">🏃 Running</option>
+                    <option value="cycling">🚴 Cycling</option>
+                    <option value="swimming">🏊 Swimming</option>
+                    <option value="gym">🏋️ Gym / Weights</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Duration (mins)</label>
+                  <input 
+                    type="number"
+                    placeholder="e.g. 45"
+                    value={workoutForm.duration}
+                    onChange={e => setWorkoutForm({ ...workoutForm, duration: e.target.value })}
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-400 ${subCardBgClass}`}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Distance (km)</label>
+                  <input 
+                    type="number"
+                    step="0.1"
+                    placeholder="e.g. 15.4"
+                    value={workoutForm.distance}
+                    onChange={e => setWorkoutForm({ ...workoutForm, distance: e.target.value })}
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-400 ${subCardBgClass}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Calories Burned</label>
+                  <input 
+                    type="number"
+                    placeholder="e.g. 320"
+                    value={workoutForm.calories}
+                    onChange={e => setWorkoutForm({ ...workoutForm, calories: e.target.value })}
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-400 ${subCardBgClass}`}
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-md flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" /> Save Workout Log
+              </button>
+            </div>
+          </form>
+
+          {/* Workout History List */}
+          <div className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
+            <h3 className="text-xs font-bold uppercase font-mono flex items-center gap-2 text-slate-300">
+              <Clock className="w-4 h-4 text-emerald-400" /> Logged Workouts Feed ({workouts.length})
+            </h3>
+
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {workouts.map(item => (
+                <div key={item.id} className={`p-3 rounded-2xl border flex items-center justify-between ${subCardBgClass}`}>
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-lg">
+                      {item.type === 'cycling' ? '🚴' : item.type === 'swimming' ? '🏊' : item.type === 'gym' ? '🏋️' : '🏃'}
+                    </span>
+                    <div>
+                      <div className="text-xs font-bold text-white">{item.name}</div>
+                      <span className={`text-[10px] font-mono ${mutedTextClass}`}>{item.duration} mins • {item.time}</span>
+                    </div>
+                  </div>
+                  <div className="text-right font-mono">
+                    <div className="text-xs font-bold text-orange-400">+{item.calories} kcal</div>
+                    {item.distance > 0 && <span className="text-[10px] text-emerald-400">{item.distance} km</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: FOOD & NUTRITION TAB */}
+      {activeTab === 'food' && (
+        <div className="px-5 space-y-5 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UtensilsCrossed className="w-5 h-5 text-red-500" />
+              <h2 className="text-base font-bold uppercase font-mono text-white">Food &amp; Calorie Tracker</h2>
+            </div>
+            <button onClick={() => setActiveTab('dashboard')} className="text-xs font-mono text-slate-400 hover:text-white">← Back</button>
+          </div>
+
+          {/* Calorie Budget Progress Card */}
+          <div className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
+            <div className="flex items-center justify-between text-xs font-mono">
+              <span className="font-bold text-slate-300">DAILY CALORIE BUDGET</span>
+              <span className="text-amber-400 font-bold">{totalFoodCalories} / {calorieGoal} kcal</span>
+            </div>
+            <div className={`w-full h-3 rounded-full overflow-hidden p-0.5 border ${subCardBgClass}`}>
+              <div 
+                className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.round((totalFoodCalories / calorieGoal) * 100))}%` }}
+              />
+            </div>
+
+            {/* Macros */}
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-center font-mono">
+              <div className={`p-2.5 rounded-xl border ${subCardBgClass}`}>
+                <span className={`text-[10px] block ${mutedTextClass}`}>PROTEIN</span>
+                <span className="text-xs font-bold text-emerald-400">{totalProtein}g</span>
+              </div>
+              <div className={`p-2.5 rounded-xl border ${subCardBgClass}`}>
+                <span className={`text-[10px] block ${mutedTextClass}`}>CARBS</span>
+                <span className="text-xs font-bold text-amber-400">{totalCarbs}g</span>
+              </div>
+              <div className={`p-2.5 rounded-xl border ${subCardBgClass}`}>
+                <span className={`text-[10px] block ${mutedTextClass}`}>FATS</span>
+                <span className="text-xs font-bold text-orange-400">{totalFats}g</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Meal Logger Form */}
+          <form onSubmit={handleAddFood} className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
+            <div className="flex items-center gap-2">
+              <UtensilsCrossed className="w-4 h-4 text-rose-500" />
+              <h3 className="text-xs font-bold uppercase font-mono text-white">Log Meal &amp; Calories</h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Meal Time</label>
+                <select 
+                  value={foodForm.meal}
+                  onChange={e => setFoodForm({ ...foodForm, meal: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+                >
+                  <option value="Breakfast">🍳 Breakfast</option>
+                  <option value="Lunch">🥗 Lunch</option>
+                  <option value="Dinner">🍲 Dinner</option>
+                  <option value="Snacks">🍎 Snacks</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Calories</label>
+                <input 
+                  type="number"
+                  placeholder="e.g. 450"
+                  value={foodForm.calories}
+                  onChange={e => setFoodForm({ ...foodForm, calories: e.target.value })}
+                  className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Food Item Description</label>
+              <input 
+                type="text"
+                placeholder="e.g. Grilled Chicken & Rice"
+                value={foodForm.name}
+                onChange={e => setFoodForm({ ...foodForm, name: e.target.value })}
+                className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <input 
+                type="number" 
+                placeholder="Protein (g)"
+                value={foodForm.protein}
+                onChange={e => setFoodForm({ ...foodForm, protein: e.target.value })}
+                className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono focus:outline-none ${subCardBgClass}`}
+              />
+              <input 
+                type="number" 
+                placeholder="Carbs (g)"
+                value={foodForm.carbs}
+                onChange={e => setFoodForm({ ...foodForm, carbs: e.target.value })}
+                className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono focus:outline-none ${subCardBgClass}`}
+              />
+              <input 
+                type="number" 
+                placeholder="Fats (g)"
+                value={foodForm.fats}
+                onChange={e => setFoodForm({ ...foodForm, fats: e.target.value })}
+                className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono focus:outline-none ${subCardBgClass}`}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-md flex items-center justify-center gap-1.5"
+            >
+              <Plus className="w-4 h-4" /> Add Food Log
+            </button>
+          </form>
+
+          {/* Meals List */}
+          <div className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
+            <h3 className="text-xs font-bold uppercase font-mono text-slate-300">Today's Logged Meals ({foodLogs.length})</h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+              {foodLogs.map(item => (
+                <div key={item.id} className={`p-3 rounded-2xl border flex items-center justify-between ${subCardBgClass}`}>
+                  <div>
+                    <span className="text-[10px] text-rose-400 font-mono uppercase font-bold">{item.meal}</span>
+                    <div className="text-xs font-bold text-white">{item.name}</div>
+                  </div>
+                  <div className="text-right font-mono text-xs font-bold text-amber-400">
+                    {item.calories} kcal
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: GOALS & CUSTOM CHALLENGES TAB */}
+      {activeTab === 'goals' && (
+        <div className="px-5 space-y-5 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-rose-500" />
+              <h2 className="text-base font-bold uppercase font-mono text-white">Custom Challenges ({challenges.length})</h2>
+            </div>
+            
+            <button
+              onClick={() => {
+                triggerClickSound();
+                setIsCreateChallengeModalOpen(true);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-sm flex items-center gap-1"
+            >
+              <PlusCircle className="w-3.5 h-3.5" /> + New Challenge
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {challenges.map(c => {
+              const pct = Math.min(100, Math.round((c.progress / c.total) * 100));
+              return (
+                <div key={c.id} className={`p-4 rounded-3xl border space-y-3 hover:border-rose-500/40 transition-all ${cardBgClass}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className={`text-2xl p-2 rounded-2xl border ${subCardBgClass}`}>{c.icon}</span>
+                      <div>
+                        <div className="text-xs font-bold text-white">{c.title}</div>
+                        <p className={`text-[11px] ${mutedTextClass}`}>{c.desc}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteChallenge(c.id)}
+                      className="p-1 rounded-xl hover:bg-red-500/20 text-red-400 transition-colors"
+                      title="Delete Challenge"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[11px] font-mono">
+                      <span className={mutedTextClass}>Progress</span>
+                      <span className="font-bold text-emerald-400">{c.progress} / {c.total} {c.unit} ({pct}%)</span>
+                    </div>
+                    <div className={`w-full h-2 rounded-full overflow-hidden p-0.5 border ${subCardBgClass}`}>
+                      <div className="bg-gradient-to-r from-rose-500 to-amber-400 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="pt-1 flex justify-between items-center">
+                    <button
+                      onClick={() => handleIncrementChallengeProgress(c.id)}
+                      className="px-3 py-1 rounded-xl text-[10px] font-mono font-bold uppercase transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30"
+                    >
+                      + Step Log
+                    </button>
+
+                    <button
+                      onClick={() => toggleChallengeJoin(c.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-mono font-bold uppercase transition-all shadow-sm ${
+                        c.joined 
+                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40' 
+                          : 'bg-rose-600 hover:bg-rose-500 text-white'
+                      }`}
+                    >
+                      {c.joined ? 'Active ✓' : 'Join'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 4. FLOATING PILL BOTTOM NAVIGATION BAR (Matches Uploaded Screenshot UI) */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-40">
         <div className="w-full bg-[#18181b]/90 backdrop-blur-xl border border-slate-800 rounded-full p-2.5 shadow-2xl flex items-center justify-around">
           {[
@@ -771,11 +1154,101 @@ export const FitpulseApp = () => {
         </div>
       </div>
 
-      {/* 8. QUICK STAT LOGGER MODAL (HYDRATION, ACTIVE BURN, SUGAR CUT) */}
+      {/* 5. CREATE CUSTOM CHALLENGE MODAL */}
+      {isCreateChallengeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <form onSubmit={handleCreateChallenge} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-rose-500" />
+                <h3 className="text-base font-bold font-mono uppercase text-white">Create Custom Fitness Challenge</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsCreateChallengeModalOpen(false)}
+                className={`p-1 rounded-lg ${mutedTextClass}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Challenge Title</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. 100 Pushups Daily Streak"
+                  value={newChallengeForm.title}
+                  onChange={e => setNewChallengeForm({ ...newChallengeForm, title: e.target.value })}
+                  className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+                />
+              </div>
+
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Short Description</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Complete 100 pushups for 14 straight days"
+                  value={newChallengeForm.desc}
+                  onChange={e => setNewChallengeForm({ ...newChallengeForm, desc: e.target.value })}
+                  className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Target Goal</label>
+                  <input 
+                    type="number"
+                    placeholder="e.g. 14"
+                    value={newChallengeForm.total}
+                    onChange={e => setNewChallengeForm({ ...newChallengeForm, total: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Unit</label>
+                  <select 
+                    value={newChallengeForm.unit}
+                    onChange={e => setNewChallengeForm({ ...newChallengeForm, unit: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+                  >
+                    <option value="Days">Days</option>
+                    <option value="km">km</option>
+                    <option value="kcal">kcal</option>
+                    <option value="Liters">Liters</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Icon Emoji</label>
+                  <input 
+                    type="text"
+                    placeholder="⚡"
+                    value={newChallengeForm.icon}
+                    onChange={e => setNewChallengeForm({ ...newChallengeForm, icon: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono text-center focus:outline-none focus:border-rose-500 ${subCardBgClass}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add Custom Challenge
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* 6. QUICK STAT LOGGER MODAL (HYDRATION, ACTIVE BURN, SUGAR CUT) */}
       {quickLogModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-4 shadow-2xl ${cardBgClass}`}>
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 {quickLogModal.type === 'hydration' && <Droplets className="w-5 h-5 text-blue-500" />}
                 {quickLogModal.type === 'burn' && <Flame className="w-5 h-5 text-orange-500" />}
@@ -896,11 +1369,119 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 9. SETTINGS & CLOUD SYNC MODAL */}
+      {/* 7. LIVE COMMUNITY CHAT MODAL */}
+      {isCommunityChatOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className={`relative w-full max-w-lg border rounded-3xl p-5 space-y-4 shadow-2xl flex flex-col h-[85vh] ${cardBgClass}`}>
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-indigo-600/20 text-indigo-500 border border-indigo-500/30">
+                  <MessageSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-mono uppercase flex items-center gap-2 text-white">
+                    FitPulse Community Chat
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  </h3>
+                  <span className={`text-xs font-mono ${mutedTextClass}`}>14 Athletes Active Now</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsCommunityChatOpen(false)}
+                className={`p-1.5 rounded-xl hover:bg-slate-800 ${mutedTextClass}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Channels Switcher */}
+            <div className="flex gap-2 font-mono text-xs overflow-x-auto pb-1">
+              {[
+                { id: 'general', label: '#general' },
+                { id: 'workout-motivation', label: '#workout-talk' },
+                { id: 'sugar-cut', label: '#zero-sugar' }
+              ].map(ch => (
+                <button
+                  key={ch.id}
+                  onClick={() => {
+                    triggerClickSound();
+                    setChatChannel(ch.id);
+                  }}
+                  className={`px-3 py-1 rounded-xl font-bold whitespace-nowrap transition-all border ${
+                    chatChannel === ch.id 
+                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-sm' 
+                      : `${subCardBgClass} ${mutedTextClass}`
+                  }`}
+                >
+                  {ch.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Messages Feed */}
+            <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-1">
+              {chatMessages.filter(m => m.channel === chatChannel || chatChannel === 'general').map(msg => (
+                <div key={msg.id} className={`p-3 rounded-2xl border space-y-1 ${
+                  msg.sender === 'Yadhu Krishnan'
+                    ? 'bg-emerald-500/10 border-emerald-500/30 ml-6'
+                    : subCardBgClass
+                }`}>
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <span className="font-bold flex items-center gap-1.5 text-slate-200">
+                      <span>{msg.avatar}</span> {msg.sender}
+                    </span>
+                    <span className={`text-[10px] ${mutedTextClass}`}>{msg.time}</span>
+                  </div>
+                  <p className="text-xs font-sans leading-relaxed text-slate-200">{msg.text}</p>
+                </div>
+              ))}
+              <div ref={chatBottomRef} />
+            </div>
+
+            {/* Quick Cheer Emojis */}
+            <div className="flex gap-2 font-mono text-xs">
+              {['💪 Keep going!', '🚴 10k Done!', '🔥 Stay active!', '💧 Drink water!'].map((cheer, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setNewMessageText(cheer);
+                    triggerClickSound();
+                  }}
+                  className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold ${subCardBgClass} hover:border-emerald-500 transition-colors whitespace-nowrap`}
+                >
+                  {cheer}
+                </button>
+              ))}
+            </div>
+
+            {/* Chat Input Form */}
+            <form onSubmit={handleSendChatMessage} className="flex gap-2">
+              <input
+                type="text"
+                placeholder={`Message ${chatChannel}...`}
+                value={newMessageText}
+                onChange={e => setNewMessageText(e.target.value)}
+                className={`flex-1 px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-indigo-500 ${subCardBgClass}`}
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs font-bold uppercase transition-all shadow flex items-center justify-center gap-1"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* 8. SETTINGS & CLOUD SYNC MODAL */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <form onSubmit={handleSaveSettings} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5 text-emerald-500" />
                 <h3 className="text-base font-bold font-mono uppercase text-white">User Settings &amp; Cloud Sync</h3>
@@ -1068,7 +1649,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 10. DEDICATED GRAPH ANALYTICS MODAL */}
+      {/* 9. DEDICATED GRAPH ANALYTICS MODAL */}
       {isAnalyticsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-2xl border rounded-3xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto ${cardBgClass}`}>

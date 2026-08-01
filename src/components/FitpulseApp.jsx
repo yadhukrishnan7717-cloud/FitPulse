@@ -87,6 +87,10 @@ export const FitpulseApp = () => {
   const [isCommunityChatOpen, setIsCommunityChatOpen] = useState(false);
   const [isCreateChallengeModalOpen, setIsCreateChallengeModalOpen] = useState(false);
 
+  // Quick Stat Logger Modal State ('hydration', 'burn', 'sugar')
+  const [quickLogModal, setQuickLogModal] = useState({ isOpen: false, type: null });
+  const [customQuickValue, setCustomQuickValue] = useState('');
+
   // Geolocation & Ambient Hydration State
   const [locationStatus, setLocationStatus] = useState(() => {
     const saved = localStorage.getItem('fitpulse_user_city');
@@ -257,7 +261,6 @@ export const FitpulseApp = () => {
           const lat = position.coords.latitude.toFixed(2);
           const lon = position.coords.longitude.toFixed(2);
           
-          // Simulated weather lookup based on coordinates
           const calculatedTemp = 30.2;
           const calculatedHumidity = 72;
           const extraWaterNeeded = Math.round((calculatedTemp - 20) * 45 + (calculatedHumidity * 3));
@@ -269,7 +272,6 @@ export const FitpulseApp = () => {
           setIsDetectingLocation(false);
         },
         (error) => {
-          // Fallback location
           setLocationStatus("Kochi, Kerala (Default)");
           setRecommendedExtraWaterMl(600);
           setIsDetectingLocation(false);
@@ -280,6 +282,32 @@ export const FitpulseApp = () => {
       setLocationStatus("Local Region");
       setIsDetectingLocation(false);
     }
+  };
+
+  // Quick Stat Logger Handlers (Hydration ml, Active Burn kcal, Sugar Cut g)
+  const openQuickLog = (type) => {
+    triggerClickSound();
+    setCustomQuickValue('');
+    setQuickLogModal({ isOpen: true, type });
+  };
+
+  const handleAddHydrationMl = (ml) => {
+    triggerClickSound();
+    const addedPct = Math.round((ml / hydrationTarget) * 100);
+    setHydration(prev => Math.min(100, prev + addedPct));
+    setQuickLogModal({ isOpen: false, type: null });
+  };
+
+  const handleAddActiveBurnKcal = (kcal) => {
+    triggerClickSound();
+    setActiveBurn(prev => prev + kcal);
+    setQuickLogModal({ isOpen: false, type: null });
+  };
+
+  const handleAddSugarCutGrams = (grams) => {
+    triggerClickSound();
+    setSugarCut(prev => prev + grams);
+    setQuickLogModal({ isOpen: false, type: null });
   };
 
   const handleSendChatMessage = (e) => {
@@ -594,43 +622,63 @@ export const FitpulseApp = () => {
                 </div>
               </div>
 
-              {/* 4 Stat Cards */}
+              {/* 4 Interactive Stat Cards (Clicking opens Log Modals!) */}
               <div className="grid grid-cols-2 gap-3">
-                {/* Hydration */}
+                {/* Hydration Card - Open Hydration Logger */}
                 <div 
-                  onClick={() => setHydration(prev => (prev + 10) % 110)}
-                  className={`p-4 rounded-2xl border hover:border-blue-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
+                  onClick={() => openQuickLog('hydration')}
+                  className={`p-4 rounded-2xl border hover:border-blue-500 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
+                  title="Click to Log Hydration Water Intake"
                 >
-                  <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500 w-fit group-hover:scale-110 transition-transform">
-                    <Droplets className="w-5 h-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-500 group-hover:scale-110 transition-transform">
+                      <Droplets className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                      + LOG
+                    </span>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-blue-500 dark:text-blue-300 font-mono">{hydration}%</div>
-                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Hydration Level</span>
+                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>
+                      {Math.round((hydration / 100) * hydrationTarget)} / {hydrationTarget} ml
+                    </span>
                   </div>
                 </div>
 
-                {/* Active Burn */}
+                {/* Active Burn Card - Open Burn Logger */}
                 <div 
-                  onClick={() => setActiveBurn(prev => prev + 50)}
-                  className={`p-4 rounded-2xl border hover:border-orange-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
+                  onClick={() => openQuickLog('burn')}
+                  className={`p-4 rounded-2xl border hover:border-orange-500 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
+                  title="Click to Log Calories Burned"
                 >
-                  <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500 w-fit group-hover:scale-110 transition-transform">
-                    <Flame className="w-5 h-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500 group-hover:scale-110 transition-transform">
+                      <Flame className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/20">
+                      + LOG
+                    </span>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-orange-500 dark:text-orange-300 font-mono">{activeBurn} kcal</div>
-                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Active Burn</span>
+                    <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Active Burn Total</span>
                   </div>
                 </div>
 
-                {/* Sugar Cut */}
+                {/* Sugar Cut Card - Open Sugar Logger */}
                 <div 
-                  onClick={() => setSugarCut(prev => prev + 2)}
-                  className={`p-4 rounded-2xl border hover:border-emerald-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
+                  onClick={() => openQuickLog('sugar')}
+                  className={`p-4 rounded-2xl border hover:border-emerald-500 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
+                  title="Click to Log Sugar Avoided"
                 >
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 w-fit group-hover:scale-110 transition-transform">
-                    <Package className="w-5 h-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 group-hover:scale-110 transition-transform">
+                      <Package className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      + LOG
+                    </span>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-emerald-600 dark:text-emerald-300 font-mono">{sugarCut}g</div>
@@ -638,13 +686,18 @@ export const FitpulseApp = () => {
                   </div>
                 </div>
 
-                {/* Daily Calorie Intake */}
+                {/* Daily Calorie Intake Card */}
                 <div 
                   onClick={() => setActiveTab('food')}
-                  className={`p-4 rounded-2xl border hover:border-amber-500/40 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
+                  className={`p-4 rounded-2xl border hover:border-amber-500 cursor-pointer transition-all space-y-2 group ${cardBgClass}`}
                 >
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 w-fit group-hover:scale-110 transition-transform">
-                    <UtensilsCrossed className="w-5 h-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 group-hover:scale-110 transition-transform">
+                      <UtensilsCrossed className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                      MEALS
+                    </span>
                   </div>
                   <div>
                     <div className="text-lg font-bold text-amber-600 dark:text-amber-300 font-mono">{totalFoodCalories} / {calorieGoal}</div>
@@ -1050,7 +1103,175 @@ export const FitpulseApp = () => {
         })}
       </div>
 
-      {/* 4. CREATE CUSTOM CHALLENGE MODAL */}
+      {/* 4. QUICK STAT LOGGER MODAL (HYDRATION, ACTIVE BURN, SUGAR CUT) */}
+      {quickLogModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                {quickLogModal.type === 'hydration' && <Droplets className="w-5 h-5 text-blue-500" />}
+                {quickLogModal.type === 'burn' && <Flame className="w-5 h-5 text-orange-500" />}
+                {quickLogModal.type === 'sugar' && <Package className="w-5 h-5 text-emerald-500" />}
+                <h3 className="text-base font-bold font-mono uppercase">
+                  {quickLogModal.type === 'hydration' && 'Log Water Hydration Intake'}
+                  {quickLogModal.type === 'burn' && 'Log Calories Burned'}
+                  {quickLogModal.type === 'sugar' && 'Log Refined Sugar Avoided'}
+                </h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setQuickLogModal({ isOpen: false, type: null })}
+                className={`p-1 rounded-lg ${mutedTextClass}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* HYDRATION PRESET BUTTONS */}
+            {quickLogModal.type === 'hydration' && (
+              <div className="space-y-3 font-mono">
+                <p className="text-xs text-slate-400">Select a quick intake portion or enter custom ml:</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    onClick={() => handleAddHydrationMl(250)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
+                  >
+                    🥛 +250 ml <span className="text-[10px] text-blue-400 block font-normal">(Glass)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddHydrationMl(500)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
+                  >
+                    🧴 +500 ml <span className="text-[10px] text-blue-400 block font-normal">(Bottle)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddHydrationMl(750)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
+                  >
+                    🧃 +750 ml <span className="text-[10px] text-blue-400 block font-normal">(Sipper)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddHydrationMl(1000)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
+                  >
+                    🧪 +1,000 ml <span className="text-[10px] text-blue-400 block font-normal">(Flask)</span>
+                  </button>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Custom ml (e.g. 350)"
+                    value={customQuickValue}
+                    onChange={e => setCustomQuickValue(e.target.value)}
+                    className={`flex-1 px-3.5 py-2 rounded-xl border text-xs focus:outline-none focus:border-blue-500 ${subCardBgClass}`}
+                  />
+                  <button
+                    onClick={() => customQuickValue && handleAddHydrationMl(parseInt(customQuickValue))}
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ACTIVE BURN PRESET BUTTONS */}
+            {quickLogModal.type === 'burn' && (
+              <div className="space-y-3 font-mono">
+                <p className="text-xs text-slate-400">Select a quick workout activity burn or enter custom kcal:</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    onClick={() => handleAddActiveBurnKcal(100)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
+                  >
+                    🚶 +100 kcal <span className="text-[10px] text-orange-400 block font-normal">(15m Walk)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddActiveBurnKcal(250)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
+                  >
+                    🏃 +250 kcal <span className="text-[10px] text-orange-400 block font-normal">(25m Run)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddActiveBurnKcal(400)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
+                  >
+                    🚴 +400 kcal <span className="text-[10px] text-orange-400 block font-normal">(45m Cycle)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddActiveBurnKcal(600)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
+                  >
+                    🏋️ +600 kcal <span className="text-[10px] text-orange-400 block font-normal">(Gym Session)</span>
+                  </button>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Custom kcal (e.g. 180)"
+                    value={customQuickValue}
+                    onChange={e => setCustomQuickValue(e.target.value)}
+                    className={`flex-1 px-3.5 py-2 rounded-xl border text-xs focus:outline-none focus:border-orange-500 ${subCardBgClass}`}
+                  />
+                  <button
+                    onClick={() => customQuickValue && handleAddActiveBurnKcal(parseInt(customQuickValue))}
+                    className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* SUGAR CUT PRESET BUTTONS */}
+            {quickLogModal.type === 'sugar' && (
+              <div className="space-y-3 font-mono">
+                <p className="text-xs text-slate-400">Select sugar grams avoided today:</p>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <button
+                    onClick={() => handleAddSugarCutGrams(2)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-emerald-500 ${subCardBgClass}`}
+                  >
+                    ☕ +2g <span className="text-[10px] text-emerald-400 block font-normal">(Black Coffee)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddSugarCutGrams(5)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-emerald-500 ${subCardBgClass}`}
+                  >
+                    🍎 +5g <span className="text-[10px] text-emerald-400 block font-normal">(Fruit Snack)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddSugarCutGrams(12)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-emerald-500 ${subCardBgClass}`}
+                  >
+                    🥤 +12g <span className="text-[10px] text-emerald-400 block font-normal">(No Soda)</span>
+                  </button>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Custom grams (e.g. 8)"
+                    value={customQuickValue}
+                    onChange={e => setCustomQuickValue(e.target.value)}
+                    className={`flex-1 px-3.5 py-2 rounded-xl border text-xs focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                  />
+                  <button
+                    onClick={() => customQuickValue && handleAddSugarCutGrams(parseInt(customQuickValue))}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 5. CREATE CUSTOM CHALLENGE MODAL */}
       {isCreateChallengeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <form onSubmit={handleCreateChallenge} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-4 shadow-2xl ${cardBgClass}`}>
@@ -1140,7 +1361,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 5. LIVE COMMUNITY CHAT MODAL */}
+      {/* 6. LIVE COMMUNITY CHAT MODAL */}
       {isCommunityChatOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-lg border rounded-3xl p-5 space-y-4 shadow-2xl flex flex-col h-[85vh] ${cardBgClass}`}>
@@ -1248,7 +1469,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 6. SETTINGS, BODY METRICS, NOTHING OS FONT & GITHUB SYNC MODAL */}
+      {/* 7. SETTINGS, BODY METRICS, NOTHING OS FONT & GITHUB SYNC MODAL */}
       {isSettingsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <form onSubmit={handleSaveSettings} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
@@ -1420,7 +1641,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 7. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
+      {/* 8. DEDICATED GRAPH ANALYTICS MODAL (TRIGGERED FROM TOP RIGHT TAB) */}
       {isAnalyticsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-2xl border rounded-3xl p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto ${cardBgClass}`}>
@@ -1542,7 +1763,7 @@ export const FitpulseApp = () => {
         </div>
       )}
 
-      {/* 8. GOOGLE CONNECT MODAL */}
+      {/* 9. GOOGLE CONNECT MODAL */}
       {isGoogleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>

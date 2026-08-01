@@ -501,7 +501,7 @@ export const FitpulseApp = () => {
   return (
     <div className={`w-full max-w-4xl mx-auto rounded-3xl overflow-hidden glass-panel border shadow-2xl flex flex-col my-4 transition-colors duration-300 ${themeContainerClass} ${fontClass}`}>
       
-      {/* 1. TOP HEADER BAR: Left Icon, CENTERED App Name & Motivational Motto, Right Toolbar (Community Chat 💬, Dedicated Graphs 📊, Google Fit, Settings ⚙️) */}
+      {/* 1. TOP HEADER BAR: Left Icon, HIGH CONTRAST CENTERED App Name & Motivational Motto, Right Toolbar */}
       <div className={`w-full px-5 py-4 border-b flex items-center justify-between backdrop-blur-md transition-colors duration-300 ${headerBgClass}`}>
         
         {/* Left Side Icon */}
@@ -509,13 +509,13 @@ export const FitpulseApp = () => {
           <Smartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
         </div>
 
-        {/* CENTERED APP NAME & MOTIVATIONAL MOTTO */}
+        {/* HIGH-CONTRAST CENTERED APP NAME & MOTIVATIONAL MOTTO */}
         <div 
           onClick={cycleMotto} 
           className="text-center cursor-pointer group select-none"
           title="Click to cycle motivational motto"
         >
-          <h2 className={`text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 group-hover:text-emerald-500 transition-colors ${
+          <h2 className={`text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent drop-shadow-md transition-all ${
             fontStyle === 'nothing' ? 'font-mono uppercase tracking-widest' : 'font-sans'
           }`}>
             fitpulse
@@ -616,7 +616,7 @@ export const FitpulseApp = () => {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <Footprints className="w-6 h-6 text-emerald-600 dark:text-emerald-400 mb-1" />
-                    <span className="text-3xl font-extrabold font-mono">{distanceKm}</span>
+                    <span className="text-3xl font-extrabold font-mono text-slate-900 dark:text-slate-100">{distanceKm}</span>
                     <span className={`text-xs font-mono ${mutedTextClass}`}>Kilometers Covered</span>
                   </div>
                 </div>
@@ -837,7 +837,7 @@ export const FitpulseApp = () => {
                           {item.type === 'cycling' ? '🚴' : item.type === 'swimming' ? '🏊' : item.type === 'gym' ? '🏋️' : '🏃'}
                         </span>
                         <div>
-                          <div className="text-xs font-bold">{item.name}</div>
+                          <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{item.name}</div>
                           <span className={`text-[10px] font-mono ${mutedTextClass}`}>{item.duration} mins • {item.time}</span>
                         </div>
                       </div>
@@ -859,7 +859,7 @@ export const FitpulseApp = () => {
             {/* Calorie Goal Progress Card */}
             <div className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="font-bold">DAILY CALORIE BUDGET</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">DAILY CALORIE BUDGET</span>
                 <span className="text-amber-500 font-bold">{totalFoodCalories} / {calorieGoal} kcal</span>
               </div>
               <div className={`w-full h-3 rounded-full overflow-hidden p-0.5 border ${subCardBgClass}`}>
@@ -891,7 +891,7 @@ export const FitpulseApp = () => {
               <form onSubmit={handleAddFood} className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
                 <div className="flex items-center gap-2">
                   <UtensilsCrossed className="w-5 h-5 text-amber-500" />
-                  <h3 className="text-sm font-bold uppercase font-mono">Log Meal &amp; Calories</h3>
+                  <h3 className="text-sm font-bold uppercase font-mono text-slate-900 dark:text-slate-100">Log Meal &amp; Calories</h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -966,15 +966,15 @@ export const FitpulseApp = () => {
 
               {/* Food Logs List */}
               <div className={`p-5 rounded-3xl border space-y-3 ${cardBgClass}`}>
-                <h3 className="text-sm font-bold uppercase font-mono">Today's Meals</h3>
+                <h3 className="text-sm font-bold uppercase font-mono text-slate-900 dark:text-slate-100">Today's Meals</h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                   {foodLogs.map(item => (
                     <div key={item.id} className={`p-3 rounded-2xl border flex items-center justify-between ${subCardBgClass}`}>
                       <div>
                         <span className="text-[10px] text-amber-500 font-mono uppercase font-bold">{item.meal}</span>
-                        <div className="text-xs font-bold">{item.name}</div>
+                        <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{item.name}</div>
                       </div>
-                      <div className="text-right font-mono text-xs font-bold">
+                      <div className="text-right font-mono text-xs font-bold text-slate-900 dark:text-slate-100">
                         {item.calories} kcal
                       </div>
                     </div>
@@ -991,7 +991,7 @@ export const FitpulseApp = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-500" />
-                <h3 className="text-sm font-bold uppercase font-mono">Custom Fitness Challenges ({challenges.length})</h3>
+                <h3 className="text-sm font-bold uppercase font-mono text-slate-900 dark:text-slate-100">Custom Fitness Challenges ({challenges.length})</h3>
               </div>
               
               <button
@@ -1014,7 +1014,7 @@ export const FitpulseApp = () => {
                       <div className="flex items-center gap-3">
                         <span className={`text-2xl p-2 rounded-2xl border ${subCardBgClass}`}>{c.icon}</span>
                         <div>
-                          <div className="text-sm font-bold">{c.title}</div>
+                          <div className="text-sm font-bold text-slate-900 dark:text-slate-100">{c.title}</div>
                           <p className={`text-xs ${mutedTextClass}`}>{c.desc}</p>
                         </div>
                       </div>
@@ -1112,7 +1112,7 @@ export const FitpulseApp = () => {
                 {quickLogModal.type === 'hydration' && <Droplets className="w-5 h-5 text-blue-500" />}
                 {quickLogModal.type === 'burn' && <Flame className="w-5 h-5 text-orange-500" />}
                 {quickLogModal.type === 'sugar' && <Package className="w-5 h-5 text-emerald-500" />}
-                <h3 className="text-base font-bold font-mono uppercase">
+                <h3 className="text-base font-bold font-mono uppercase text-slate-900 dark:text-slate-100">
                   {quickLogModal.type === 'hydration' && 'Log Water Hydration Intake'}
                   {quickLogModal.type === 'burn' && 'Log Calories Burned'}
                   {quickLogModal.type === 'sugar' && 'Log Refined Sugar Avoided'}
@@ -1240,7 +1240,7 @@ export const FitpulseApp = () => {
                     onClick={() => handleAddSugarCutGrams(5)}
                     className={`p-3 rounded-xl border text-center font-bold hover:border-emerald-500 ${subCardBgClass}`}
                   >
-                    🍎 +5g <span className="text-[10px] text-emerald-400 block font-normal">(Fruit Snack)</span>
+                    🍎 +5g <span className="text-[10px] text-emerald-400 block font-normal">(Fresh Fruit)</span>
                   </button>
                   <button
                     onClick={() => handleAddSugarCutGrams(12)}
@@ -1278,7 +1278,7 @@ export const FitpulseApp = () => {
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Trophy className="w-5 h-5 text-amber-500" />
-                <h3 className="text-base font-bold font-mono uppercase">Create Custom Fitness Challenge</h3>
+                <h3 className="text-base font-bold font-mono uppercase text-slate-900 dark:text-slate-100">Create Custom Fitness Challenge</h3>
               </div>
               <button 
                 type="button"
@@ -1373,7 +1373,7 @@ export const FitpulseApp = () => {
                   <MessageSquare className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold font-mono uppercase flex items-center gap-2">
+                  <h3 className="text-base font-bold font-mono uppercase flex items-center gap-2 text-slate-900 dark:text-slate-100">
                     FitPulse Community Chat
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   </h3>
@@ -1426,7 +1426,7 @@ export const FitpulseApp = () => {
                     </span>
                     <span className={`text-[10px] ${mutedTextClass}`}>{msg.time}</span>
                   </div>
-                  <p className="text-xs font-sans leading-relaxed">{msg.text}</p>
+                  <p className="text-xs font-sans leading-relaxed text-slate-800 dark:text-slate-200">{msg.text}</p>
                 </div>
               ))}
               <div ref={chatBottomRef} />
@@ -1476,12 +1476,12 @@ export const FitpulseApp = () => {
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5 text-emerald-500" />
-                <h3 className="text-base font-bold font-mono uppercase">User Settings &amp; Cloud Sync</h3>
+                <h3 className="text-base font-bold font-mono uppercase text-slate-900 dark:text-slate-100">User Settings &amp; Cloud Sync</h3>
               </div>
               <button 
                 type="button"
                 onClick={() => setIsSettingsModalOpen(false)}
-                className={`p-1 rounded-lg ${mutedTextClass} hover:text-slate-900 dark:hover:text-white`}
+                className={`p-1 rounded-lg ${mutedTextClass}`}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1652,7 +1652,7 @@ export const FitpulseApp = () => {
                   <BarChart3 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-extrabold font-sans flex items-center gap-2">
+                  <h3 className="text-lg font-extrabold font-sans flex items-center gap-2 text-slate-900 dark:text-slate-100">
                     DEDICATED GRAPH ANALYTICS
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-mono font-bold">LIVE</span>
                   </h3>
@@ -1775,11 +1775,11 @@ export const FitpulseApp = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
-                <h3 className="text-base font-bold">Google Fit Connect</h3>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Google Fit Connect</h3>
               </div>
               <button 
                 onClick={() => setIsGoogleModalOpen(false)}
-                className={`p-1 rounded-lg ${mutedTextClass} hover:text-slate-900 dark:hover:text-white`}
+                className={`p-1 rounded-lg ${mutedTextClass}`}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1791,7 +1791,7 @@ export const FitpulseApp = () => {
               <div className={`p-3.5 rounded-2xl border space-y-2 font-mono text-[11px] ${subCardBgClass}`}>
                 <div className="flex justify-between">
                   <span className={mutedTextClass}>Account:</span>
-                  <span className="font-bold">yadhukrishnan7717@gmail.com</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">yadhukrishnan7717@gmail.com</span>
                 </div>
                 <div className="flex justify-between">
                   <span className={mutedTextClass}>Status:</span>

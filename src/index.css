@@ -1,0 +1,83 @@
+@layer base {
+  :root {
+    --color-bg-dark: #09090b;
+    --color-bg-light: #f4f4f6;
+    --color-surface-dark: rgba(22, 22, 26, 0.85);
+    --color-surface-light: rgba(255, 255, 255, 0.85);
+    --color-border-dark: rgba(255, 255, 255, 0.12);
+    --color-border-light: rgba(0, 0, 0, 0.1);
+    --color-text-dark: #f8fafc;
+    --color-text-light: #0f172a;
+    --color-text-muted-dark: #94a3b8;
+    --color-text-muted-light: #64748b;
+    
+    --font-inter: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-dark);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Light theme overrides */
+body.light-theme {
+  background-color: var(--color-bg-light);
+  color: var(--color-text-light);
+}
+
+/* Dot Matrix Background */
+.nothing-dot-bg {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+body.light-theme .nothing-dot-bg {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.07) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+/* Glassmorphism Panel */
+.glass-panel {
+  background: var(--color-surface-dark);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border-dark);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+body.light-theme .glass-panel {
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+body.light-theme ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}

@@ -742,49 +742,48 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
         </div>
       </div>
 
-      {/* 2. MAIN ATHLETIC DAILY STREAK CARD BANNER */}
-      <div className="px-5 mb-5">
-        <div className="w-full bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border border-blue-800/60 rounded-3xl p-5 shadow-2xl flex items-center justify-between text-white relative overflow-hidden group">
-          {/* Ambient Glow */}
-          <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-blue-600/20 blur-xl pointer-events-none" />
-
-          {/* Left Side: Flame & Streak Counter */}
-          <div className="flex items-center gap-3.5 z-10">
-            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-              <Flame className="w-8 h-8 text-amber-400 animate-pulse" />
-            </div>
-            <div>
-              <div className="text-3xl font-extrabold font-mono tracking-tight text-white">{streakDays}</div>
-              <span className="text-xs font-mono text-blue-300 uppercase tracking-widest block">DAILY STREAK</span>
-              <span className="text-[10px] font-mono text-slate-400">Keep up the athletic gains!</span>
-            </div>
-          </div>
-
-          {/* Right Side: Featured Athletic Character Avatar & Action Button */}
-          <div className="flex items-center gap-3 z-10">
-            {/* Athletic Character (Weightlifter / Cyclist) */}
-            <div className="p-1 rounded-2xl bg-slate-800/80 border border-blue-500/30 shadow-lg">
-              <WeightlifterCharacter className="w-16 h-16 transform group-hover:scale-110 transition-transform" />
-            </div>
-
-            <button
-              onClick={() => {
-                triggerClickSound();
-                setStreakDays(prev => prev + 1);
-              }}
-              className="px-3.5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-500 text-xs font-mono font-bold text-white transition-all shadow-md border border-blue-400/40 hover:scale-105 active:scale-95"
-            >
-              +1 Day
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* 3. DYNAMIC TAB CONTENT VIEWS (Dashboard, Workout, Food, Goals) */}
       
       {/* TAB 1: DASHBOARD / HOME */}
       {activeTab === 'dashboard' && (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in">
+          {/* MAIN ATHLETIC DAILY STREAK CARD BANNER (Dashboard Only) */}
+          <div className="px-5">
+            <div className="w-full bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border border-blue-800/60 rounded-3xl p-5 shadow-2xl flex items-center justify-between text-white relative overflow-hidden group">
+              {/* Ambient Glow */}
+              <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-blue-600/20 blur-xl pointer-events-none" />
+
+              {/* Left Side: Flame & Streak Counter */}
+              <div className="flex items-center gap-3.5 z-10">
+                <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                  <Flame className="w-8 h-8 text-amber-400 animate-pulse" />
+                </div>
+                <div>
+                  <div className="text-3xl font-extrabold font-mono tracking-tight text-white">{streakDays}</div>
+                  <span className="text-xs font-mono text-blue-300 uppercase tracking-widest block">DAILY STREAK</span>
+                  <span className="text-[10px] font-mono text-slate-400">Keep up the athletic gains!</span>
+                </div>
+              </div>
+
+              {/* Right Side: Featured Athletic Character Avatar & Action Button */}
+              <div className="flex items-center gap-3 z-10">
+                {/* Athletic Character (Weightlifter / Cyclist) */}
+                <div className="p-1 rounded-2xl bg-slate-800/80 border border-blue-500/30 shadow-lg">
+                  <WeightlifterCharacter className="w-16 h-16 transform group-hover:scale-110 transition-transform" />
+                </div>
+
+                <button
+                  onClick={() => {
+                    triggerClickSound();
+                    setStreakDays(prev => prev + 1);
+                  }}
+                  className="px-3.5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-500 text-xs font-mono font-bold text-white transition-all shadow-md border border-blue-400/40 hover:scale-105 active:scale-95"
+                >
+                  +1 Day
+                </button>
+              </div>
+            </div>
+          </div>
 
 
           {/* Three Stat Cards Row (XP, Workouts, Active Mins) */}

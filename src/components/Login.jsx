@@ -1,16 +1,64 @@
-import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, updateProfile } from "firebase/auth";
+import React, { useState, useEffect } from 'react';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, updateProfile, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { auth } from '../firebase';
 import './Login.css';
 
 export function Login({ onLoginSuccess }) {
   const [view, setView] = useState('login'); // 'login', 'signup', 'forgot'
+  const [authMethod, setAuthMethod] = useState('email'); // 'email', 'phone'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [confirmationResult, setConfirmationResult] = useState(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!window.recaptchaVerifier) {
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible'
+      });
+    }
+  }, []);
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+    setLoading(true);
+    try {
+      const appVerifier = window.recaptchaVerifier;
+      // Ensure phone number has country code (e.g., +1)
+      const formattedPhone = phone.startsWith('+') ? phone : '+' + phone;
+      const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(result);
+      setShowOtpInput(true);
+      setMessage('OTP sent to ' + formattedPhone);
+    } catch (err) {
+      setError(err.message.replace('Firebase: ', ''));
+    }
+    setLoading(false);
+  };
+
+  const handleConfirmOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const result = await confirmationResult.confirm(otp);
+      if (view === 'signup' && name) {
+        await updateProfile(result.user, { displayName: name });
+      }
+      onLoginSuccess(result.user.displayName || 'User');
+    } catch (err) {
+      setError(err.message.replace('Firebase: ', ''));
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +112,28 @@ export function Login({ onLoginSuccess }) {
             {view === 'forgot' && 'Enter your email to reset your password.'}
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="login-form">
+
+        {view !== 'forgot' && (
+          <div className="auth-method-tabs" style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+            <button 
+              type="button" 
+              onClick={() => { setAuthMethod('email'); setShowOtpInput(false); }}
+              style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--primary)', background: authMethod === 'email' ? 'var(--primary)' : 'transparent', color: authMethod === 'email' ? 'white' : 'var(--primary)', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Email
+            </button>
+            <button 
+              type="button" 
+              onClick={() => { setAuthMethod('phone'); setShowOtpInput(false); }}
+              style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--primary)', background: authMethod === 'phone' ? 'var(--primary)' : 'transparent', color: authMethod === 'phone' ? 'white' : 'var(--primary)', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              Phone Number
+            </button>
+          </div>
+        )}
+
+        <form onSubmit={authMethod === 'email' || view === 'forgot' ? handleSubmit : (showOtpInput ? handleConfirmOtp : handleSendOtp)} className="login-form">
+          <div id="recaptcha-container"></div>
           {error && <div style={{ color: '#ef4444', fontSize: '13px', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>{error}</div>}
           {message && <div style={{ color: '#10b981', fontSize: '13px', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>{message}</div>}
           {view === 'signup' && (
@@ -81,30 +150,63 @@ export function Login({ onLoginSuccess }) {
             </div>
           )}
           
-          <div className="input-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          
-          {view !== 'forgot' && (
-            <div className="input-group">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          {authMethod === 'email' || view === 'forgot' ? (
+            <>
+              <div className="input-group">
+                <label htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              
+              {view !== 'forgot' && (
+                <div className="input-group">
+                  <label htmlFor="password">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="input-group">
+                <label htmlFor="phone">Phone Number</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  placeholder="+1234567890"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  disabled={showOtpInput}
+                  required
+                />
+              </div>
+
+              {showOtpInput && (
+                <div className="input-group">
+                  <label htmlFor="otp">6-Digit OTP</label>
+                  <input
+                    type="text"
+                    id="otp"
+                    placeholder="123456"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+            </>
           )}
 
           {view === 'login' && (
@@ -127,9 +229,11 @@ export function Login({ onLoginSuccess }) {
           <button type="submit" className="login-button" disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
             {loading ? 'Processing...' : (
               <>
-                {view === 'login' && 'Sign In'}
-                {view === 'signup' && 'Sign Up'}
+                {view === 'login' && authMethod === 'email' && 'Sign In'}
+                {view === 'signup' && authMethod === 'email' && 'Sign Up'}
                 {view === 'forgot' && 'Send Reset Link'}
+                {authMethod === 'phone' && !showOtpInput && 'Send OTP'}
+                {authMethod === 'phone' && showOtpInput && 'Verify & Sign In'}
               </>
             )}
           </button>

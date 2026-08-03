@@ -610,12 +610,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
       {/* TAB 1: DASHBOARD / HOME */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
-          {/* Greeting Section */}
-          <div className="px-5 pt-2">
-            <h1 className="text-2xl font-bold font-mono text-white">
-              {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'}, {username}!
-            </h1>
-          </div>
+
 
           {/* Three Stat Cards Row (XP, Workouts, Active Mins) */}
           <div className="px-5 grid grid-cols-3 gap-3">

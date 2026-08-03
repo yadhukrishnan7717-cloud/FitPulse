@@ -2338,31 +2338,6 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 </button>
               </div>
 
-              {/* GitHub Repository Cloud Sync Section */}
-              <div className={`p-3.5 rounded-2xl border space-y-2 font-mono ${subCardBgClass}`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold flex items-center gap-1.5 text-white">
-                    <GitBranch className="w-4 h-4 text-emerald-500" /> GitHub Repository
-                  </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
-                    {githubSyncStatus}
-                  </span>
-                </div>
-                <div className="text-[10px] text-slate-400 space-y-1">
-                  <div>Repo: <span className="text-emerald-300">yadhukrishnan7717-cloud/FitPulse.git</span></div>
-                  <div>Branch: <span className="font-bold">main</span></div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleTriggerGithubSync}
-                  disabled={isGithubSyncing}
-                  className="w-full py-1.5 mt-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isGithubSyncing ? 'animate-spin' : ''}`} />
-                  <span>{isGithubSyncing ? 'Pushing to GitHub...' : 'Sync & Push Code to GitHub'}</span>
-                </button>
-              </div>
-
               {/* Nothing Font Style Selector */}
               <div className="space-y-1.5">
                 <label className={`text-[10px] font-mono uppercase block flex items-center gap-1 ${mutedTextClass}`}>

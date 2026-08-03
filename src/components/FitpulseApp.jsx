@@ -871,16 +871,11 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 </div>
               </div>
 
-              {/* Right Side: Featured Athletic Character Avatar & Action Button */}
+              {/* Right Side: Featured Athletic Character Avatar */}
               <div className="flex items-center gap-3 z-10">
-                {/* Athletic Character (Weightlifter / Cyclist) */}
+                {/* Athletic Character (Weightlifter) */}
                 <div className="p-1 rounded-2xl bg-slate-800/80 border border-blue-500/30 shadow-lg">
                   <WeightlifterCharacter className="w-16 h-16 transform group-hover:scale-110 transition-transform" />
-                </div>
-
-                <div className="px-3 py-1.5 rounded-2xl bg-blue-500/20 text-blue-300 text-[10px] font-mono font-bold border border-blue-400/30 flex items-center gap-1.5 shadow-sm">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  AUTO-ANALYZED
                 </div>
               </div>
             </div>

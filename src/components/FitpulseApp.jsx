@@ -2355,11 +2355,12 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                       onClick={() => {
                         triggerClickSound();
                         setSettingsForm({ ...settingsForm, fontStyle: f.id });
+                        setFontStyle(f.id);
                       }}
                       className={`py-2 px-2 rounded-xl text-[11px] font-bold border transition-all text-center ${
-                        settingsForm.fontStyle === f.id
-                          ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm'
-                          : `${subCardBgClass} ${mutedTextClass}`
+                        fontStyle === f.id
+                          ? 'bg-emerald-600 text-white border-emerald-500 shadow-sm scale-105 ring-2 ring-emerald-500/30'
+                          : `${subCardBgClass} ${mutedTextClass} hover:border-slate-700`
                       }`}
                     >
                       {f.label}

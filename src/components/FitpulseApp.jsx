@@ -633,7 +633,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   const mutedTextClass = isDarkMode ? 'text-slate-400' : 'text-slate-500';
 
   return (
-    <div className={`w-full max-w-md mx-auto min-h-screen pb-24 relative flex flex-col transition-colors duration-300 ${themeContainerClass} ${fontClass}`}>
+    <div className={`w-full max-w-md mx-auto min-h-screen pb-36 relative flex flex-col transition-colors duration-300 ${themeContainerClass} ${fontClass}`}>
       
       {/* 1. TOP HEADER BAR: Greeting on Left, Chat & Header Buttons on Right */}
       <div className="w-full px-5 pt-6 pb-4 flex items-center justify-between">
@@ -642,7 +642,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           <span className="text-xs font-serif italic text-slate-400 block">
             {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'},
           </span>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
             {username}!
           </h1>
         </div>
@@ -792,8 +792,8 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               onClick={() => openQuickLog('burn')}
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <Flame className="w-5 h-5 mx-auto text-white" />
-              <div className="text-base font-extrabold font-mono text-white">{totalXp}</div>
+              <Flame className="w-5 h-5 mx-auto text-amber-500" />
+              <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">{totalXp}</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Total XP</span>
             </div>
 
@@ -801,8 +801,8 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               onClick={() => setActiveTab('workout')}
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <BookOpen className="w-5 h-5 mx-auto text-white" />
-              <div className="text-base font-extrabold font-mono text-white">0</div>
+              <BookOpen className="w-5 h-5 mx-auto text-rose-500" />
+              <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">0</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Lessons</span>
             </div>
 
@@ -810,8 +810,8 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               onClick={() => setIsAnalyticsModalOpen(true)}
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <Clock className="w-5 h-5 mx-auto text-white" />
-              <div className="text-base font-extrabold font-mono text-white">35</div>
+              <Clock className="w-5 h-5 mx-auto text-indigo-400" />
+              <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">35</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Minutes</span>
             </div>
           </div>

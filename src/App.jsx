@@ -3,11 +3,13 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { FitpulseApp } from './components/FitpulseApp';
 import { Login } from './components/Login';
 import { Onboarding } from './components/Onboarding';
+import { LoadingScreen } from './components/LoadingScreen';
 
 export default function App() {
   const { isAuthenticated, isLoading, user, logout } = useAuth0();
   const [hasCompletedProfile, setHasCompletedProfile] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
+  const [isAppLoading, setIsAppLoading] = useState(true);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -27,8 +29,6 @@ export default function App() {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
-
-
   useEffect(() => {
     const handleStorageChange = () => {
       const saved = localStorage.getItem('fitpulse_is_dark_mode');
@@ -44,8 +44,9 @@ export default function App() {
     };
   }, []);
 
-  if (isLoading) {
-    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a', color: 'white', fontFamily: 'Inter, sans-serif' }}>Authenticating...</div>;
+  // Render Startup / Loading Screen with Animated FITPULSE Logo Icon
+  if (isAppLoading || isLoading) {
+    return <LoadingScreen onLoadingComplete={() => setIsAppLoading(false)} />;
   }
 
   if (!isAuthenticated) {

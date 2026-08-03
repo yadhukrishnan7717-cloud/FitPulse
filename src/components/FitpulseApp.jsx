@@ -53,9 +53,17 @@ import {
   Library,
   Hourglass,
   Newspaper,
-  Book
+  Book,
+  Crown,
+  Medal,
+  Search,
+  Filter,
+  ThumbsUp
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
+import { FitpulseLogo } from './FitpulseLogo';
+import { CyclistCharacter, WeightlifterCharacter, SwimmerCharacter, FoodieCharacter } from './SectionCharacters';
+import { EmotionWidget } from './EmotionWidget';
 
 export const FitpulseApp = ({ username = 'User', onLogout }) => {
   // Navigation State (4 Floating Bottom Tabs: 'dashboard', 'workout', 'food', 'goals')
@@ -94,10 +102,13 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isCommunityChatOpen, setIsCommunityChatOpen] = useState(false);
   const [isCreateChallengeModalOpen, setIsCreateChallengeModalOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isAddQuestModalOpen, setIsAddQuestModalOpen] = useState(false);
 
   // Quick Stat Logger Modal State ('hydration', 'burn', 'sugar')
   const [quickLogModal, setQuickLogModal] = useState({ isOpen: false, type: null });
   const [customQuickValue, setCustomQuickValue] = useState('');
+  const [newQuestForm, setNewQuestForm] = useState({ title: '', desc: '', xp: 10, type: 'time' });
 
   // Streak Count State
   const [streakDays, setStreakDays] = useState(5);
@@ -226,10 +237,79 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   });
 
   // Daily Quests State
-  const [dailyQuests, setDailyQuests] = useState([
-    { id: 1, title: 'Learn for 10 Minutes', desc: 'Spend 10 minutes learning', completed: false, xp: 10, type: 'time' },
-    { id: 2, title: 'Read one full news article', desc: 'Earn +$4', completed: false, xp: 4, type: 'article' }
-  ]);
+  const [dailyQuests, setDailyQuests] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_daily_quests');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, title: 'Morning Stretch', desc: 'Stretch for 10 minutes', completed: false, xp: 10, type: 'time' },
+      { id: 2, title: 'Read Fitness Article', desc: 'Earn +15 XP', completed: false, xp: 15, type: 'article' }
+    ];
+  });
+
+  // Leaderboard & Ranking State
+  const [lbTimeframe, setLbTimeframe] = useState('week'); // 'today', 'week', 'month', 'all'
+  const [lbCategory, setLbCategory] = useState('xp'); // 'xp', 'burn', 'distance', 'streak'
+  const [lbSearch, setLbSearch] = useState('');
+  const [lbKudosMap, setLbKudosMap] = useState(() => {
+    const saved = localStorage.getItem('fitpulse_kudos_map');
+    return saved ? JSON.parse(saved) : {
+      'alex-1': 52,
+      'elena-2': 44,
+      'marcus-3': 38,
+      'sarah-4': 31,
+      'david-5': 27,
+      'hana-6': 21,
+      'user-me': 15
+    };
+  });
+
+  const getLeaderboardData = () => {
+    const timeMultipliers = { today: 0.2, week: 1.0, month: 3.8, all: 14.5 };
+    const mult = timeMultipliers[lbTimeframe] || 1.0;
+
+    const baseAthletes = [
+      { id: 'alex-1', name: 'Alex Rivera', badge: 'Diamond Sprinter', avatar: '⚡', xp: 3420, burn: 1850, distance: 62.4, streak: 12 },
+      { id: 'elena-2', name: 'Elena Rostova', badge: 'Elite Cyclist', avatar: '🚴', xp: 3150, burn: 1620, distance: 84.1, streak: 9 },
+      { id: 'marcus-3', name: 'Marcus Chen', badge: 'Pro Powerlifter', avatar: '🏋️', xp: 2890, burn: 1410, distance: 31.0, streak: 14 },
+      { id: 'sarah-4', name: 'Sarah Jenkins', badge: 'Sprint Master', avatar: '🏃', xp: 2640, burn: 1290, distance: 45.2, streak: 7 },
+      { id: 'david-5', name: 'David Miller', badge: 'Endurance Legend', avatar: '🏔️', xp: 2310, burn: 1150, distance: 52.8, streak: 5 },
+      { id: 'hana-6', name: 'Hana Tanaka', badge: 'Zen Warrior', avatar: '🧘', xp: 2100, burn: 980, distance: 28.5, streak: 8 },
+      { id: 'user-me', name: `${username} (You)`, badge: 'Pulse Challenger', avatar: '🔥', xp: totalXp, burn: activeBurn, distance: distanceKm, streak: 4, isCurrentUser: true }
+    ];
+
+    const scaled = baseAthletes.map(player => {
+      const isMe = player.isCurrentUser;
+      const factor = isMe ? 1.0 : mult;
+      return {
+        ...player,
+        xpVal: Math.round(player.xp * factor),
+        burnVal: Math.round(player.burn * factor),
+        distVal: parseFloat((player.distance * factor).toFixed(1)),
+        kudos: lbKudosMap[player.id] || 0
+      };
+    });
+
+    const sorted = scaled.sort((a, b) => {
+      if (lbCategory === 'xp') return b.xpVal - a.xpVal;
+      if (lbCategory === 'burn') return b.burnVal - a.burnVal;
+      if (lbCategory === 'distance') return b.distVal - a.distVal;
+      if (lbCategory === 'streak') return b.streak - a.streak;
+      return b.xpVal - a.xpVal;
+    });
+
+    if (!lbSearch.trim()) return sorted;
+    return sorted.filter(item => 
+      item.name.toLowerCase().includes(lbSearch.toLowerCase()) || 
+      item.badge.toLowerCase().includes(lbSearch.toLowerCase())
+    );
+  };
+
+  const handleGiveKudos = (id) => {
+    triggerClickSound();
+    setLbKudosMap(prev => ({
+      ...prev,
+      [id]: (prev[id] || 0) + 1
+    }));
+  };
 
   // Save State Persistence
   useEffect(() => {
@@ -248,9 +328,11 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
     localStorage.setItem('fitpulse_workouts', JSON.stringify(workouts));
     localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
     localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
+    localStorage.setItem('fitpulse_daily_quests', JSON.stringify(dailyQuests));
+    localStorage.setItem('fitpulse_kudos_map', JSON.stringify(lbKudosMap));
     localStorage.setItem('fitpulse_community_chat', JSON.stringify(chatMessages));
     localStorage.setItem('fitpulse_user_city', locationStatus);
-  }, [isDarkMode, fontStyle, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, chatMessages, locationStatus]);
+  }, [isDarkMode, fontStyle, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, dailyQuests, chatMessages, locationStatus]);
 
   const triggerClickSound = () => {
     if (isSoundEnabled) {
@@ -314,6 +396,13 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
     const addedPct = Math.round((ml / hydrationTarget) * 100);
     setHydration(prev => Math.min(100, prev + addedPct));
     setTotalXp(prev => prev + 10);
+    setQuickLogModal({ isOpen: false, type: null });
+  };
+
+  const handleAddSteps = (stepsCount) => {
+    triggerClickSound();
+    setDistanceKm(prev => parseFloat((prev + (stepsCount * 0.000762)).toFixed(2)));
+    setTotalXp(prev => prev + Math.floor(stepsCount / 100));
     setQuickLogModal({ isOpen: false, type: null });
   };
 
@@ -413,6 +502,29 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   const toggleQuest = (id) => {
     triggerClickSound();
     setDailyQuests(dailyQuests.map(q => q.id === id ? { ...q, completed: !q.completed } : q));
+  };
+
+  const handleAddQuest = (e) => {
+    e.preventDefault();
+    if (!newQuestForm.title) return;
+    triggerClickSound();
+    const newQuest = {
+      id: `custom-${Date.now()}`,
+      title: newQuestForm.title,
+      desc: newQuestForm.desc,
+      completed: false,
+      xp: parseInt(newQuestForm.xp),
+      type: newQuestForm.type
+    };
+    setDailyQuests([newQuest, ...dailyQuests]);
+    setNewQuestForm({ title: '', desc: '', xp: 10, type: 'time' });
+    setIsAddQuestModalOpen(false);
+  };
+
+  const handleDeleteQuest = (id, e) => {
+    e.stopPropagation();
+    triggerClickSound();
+    setDailyQuests(dailyQuests.filter(q => q.id !== id));
   };
 
   // Analytics Graph Datasets
@@ -523,8 +635,9 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   return (
     <div className={`w-full max-w-md mx-auto min-h-screen pb-24 relative flex flex-col transition-colors duration-300 ${themeContainerClass} ${fontClass}`}>
       
-      {/* 1. GAMIFIED TOP HEADER: Greeting, User Name, Hamburger Menu & User Profile Avatar */}
+      {/* 1. TOP HEADER BAR: Greeting on Left, Chat & Header Buttons on Right */}
       <div className="w-full px-5 pt-6 pb-4 flex items-center justify-between">
+        {/* Left: Greeting */}
         <div>
           <span className="text-xs font-serif italic text-slate-400 block">
             {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'},
@@ -534,6 +647,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           </h1>
         </div>
 
+        {/* Right: Chat & Header Buttons */}
         <div className="flex items-center gap-2">
           {/* Community Chat 💬 */}
           <button
@@ -572,36 +686,97 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
             <Settings className="w-4 h-4" />
           </button>
 
-          {/* Profile Avatar */}
-          <div 
-            onClick={() => setIsSettingsModalOpen(true)}
-            className="w-10 h-10 rounded-full bg-emerald-600 border-2 border-emerald-400 overflow-hidden cursor-pointer shadow-md flex items-center justify-center text-white font-bold text-sm"
-            title={`${username} Profile`}
-          >
-            {username.substring(0, 2).toUpperCase()}
+          {/* Profile Avatar with Dropdown */}
+          <div className="relative">
+            <div 
+              onClick={() => {
+                triggerClickSound();
+                setIsProfileMenuOpen(!isProfileMenuOpen);
+              }}
+              className="w-10 h-10 rounded-full bg-emerald-600 border-2 border-emerald-400 overflow-hidden cursor-pointer shadow-md flex items-center justify-center text-white font-bold text-sm hover:scale-105 transition-transform"
+              title={`${username} Profile`}
+            >
+              {username.substring(0, 2).toUpperCase()}
+            </div>
+            
+            {/* Dropdown Menu */}
+            {isProfileMenuOpen && (
+              <div className="absolute right-0 mt-3 w-48 bg-[#18181b] border border-slate-800 rounded-2xl shadow-xl py-2 z-50 animate-fade-in text-slate-200 text-sm font-mono">
+                <button 
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    triggerClickSound();
+                    setSettingsForm({ weight: userWeight, height: userHeight, calorieGoal: calorieGoal, hydrationTarget: hydrationTarget, fontStyle: fontStyle });
+                    setIsSettingsModalOpen(true);
+                  }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-slate-800 transition-colors flex items-center gap-2"
+                >
+                  <Settings className="w-4 h-4 text-emerald-500" />
+                  Account Settings
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    toggleTheme();
+                  }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-slate-800 transition-colors flex items-center gap-2"
+                >
+                  {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-400" />}
+                  Toggle Theme
+                </button>
+                <div className="my-1 border-t border-slate-800"></div>
+                <button 
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    triggerClickSound();
+                    if (onLogout) onLogout();
+                  }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-slate-800 transition-colors flex items-center gap-2 text-rose-400"
+                >
+                  <User className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* 2. MAIN RED STREAK CARD BANNER */}
+      {/* 2. MAIN ATHLETIC DAILY STREAK CARD BANNER */}
       <div className="px-5 mb-5">
-        <div className="w-full bg-gradient-to-r from-red-900 via-rose-900 to-red-950 border border-rose-800/80 rounded-3xl p-5 shadow-2xl flex items-center justify-between text-white relative overflow-hidden">
+        <div className="w-full bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border border-blue-800/60 rounded-3xl p-5 shadow-2xl flex items-center justify-between text-white relative overflow-hidden group">
+          {/* Ambient Glow */}
+          <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-blue-600/20 blur-xl pointer-events-none" />
+
+          {/* Left Side: Flame & Streak Counter */}
           <div className="flex items-center gap-3.5 z-10">
             <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-              <Flame className="w-8 h-8 text-rose-300 animate-pulse" />
+              <Flame className="w-8 h-8 text-amber-400 animate-pulse" />
             </div>
             <div>
-              <div className="text-3xl font-extrabold font-mono tracking-tight">{streakDays}</div>
-              <span className="text-xs font-mono text-rose-200 uppercase tracking-widest">Day Streak</span>
+              <div className="text-3xl font-extrabold font-mono tracking-tight text-white">{streakDays}</div>
+              <span className="text-xs font-mono text-blue-300 uppercase tracking-widest block">DAILY STREAK</span>
+              <span className="text-[10px] font-mono text-slate-400">Keep up the athletic gains!</span>
             </div>
           </div>
 
-          <button
-            onClick={() => setStreakDays(prev => prev + 1)}
-            className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-xs font-mono font-bold text-white transition-all shadow-md z-10 border border-white/30"
-          >
-            Keep Going!
-          </button>
+          {/* Right Side: Featured Athletic Character Avatar & Action Button */}
+          <div className="flex items-center gap-3 z-10">
+            {/* Athletic Character (Weightlifter / Cyclist) */}
+            <div className="p-1 rounded-2xl bg-slate-800/80 border border-blue-500/30 shadow-lg">
+              <WeightlifterCharacter className="w-16 h-16 transform group-hover:scale-110 transition-transform" />
+            </div>
+
+            <button
+              onClick={() => {
+                triggerClickSound();
+                setStreakDays(prev => prev + 1);
+              }}
+              className="px-3.5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-500 text-xs font-mono font-bold text-white transition-all shadow-md border border-blue-400/40 hover:scale-105 active:scale-95"
+            >
+              +1 Day
+            </button>
+          </div>
         </div>
       </div>
 
@@ -645,14 +820,11 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           {/* Four Circular Action Buttons Row */}
           <div className="px-5 flex items-center justify-between">
             <button
-              onClick={() => {
-                triggerClickSound();
-                setActiveTab('workout');
-              }}
+              onClick={() => openQuickLog('steps')}
               className="w-20 h-20 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform relative"
-              title="Lessons"
+              title="Log Steps"
             >
-              <BookOpen className="w-8 h-8" />
+              <Footprints className="w-8 h-8" />
               <span className="absolute top-0 right-0 w-6 h-6 rounded-full bg-amber-600 text-white text-[12px] font-mono flex items-center justify-center border-2 border-black">★</span>
             </button>
 
@@ -662,17 +834,17 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 setActiveTab('food');
               }}
               className="w-20 h-20 rounded-full bg-white hover:bg-slate-100 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-              title="Library"
+              title="Nutrition"
             >
-              <Library className="w-8 h-8 text-rose-600" />
+              <UtensilsCrossed className="w-8 h-8 text-rose-600" />
             </button>
 
             <button
               onClick={() => openQuickLog('hydration')}
               className="w-20 h-20 rounded-full bg-[#18181b] border-2 border-slate-700 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-              title="Time"
+              title="Hydration"
             >
-              <Hourglass className="w-8 h-8 text-slate-400" />
+              <Droplets className="w-8 h-8 text-blue-400" />
             </button>
 
             <button
@@ -681,10 +853,15 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 setActiveTab('goals');
               }}
               className="w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-              title="News"
+              title="Challenges"
             >
-              <Newspaper className="w-8 h-8" />
+              <Trophy className="w-8 h-8" />
             </button>
+          </div>
+
+          {/* ATHLETE EMOTION & MOOD EMOJI WIDGET WITH CHARACTER */}
+          <div className="px-5">
+            <EmotionWidget />
           </div>
 
           {/* Quick Start Featured Card Banner */}
@@ -709,17 +886,34 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
 
               <div>
                 <h3 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight leading-tight">
-                  Language Learning,<br/>Rewritten.
+                  High-Intensity<br/>Core Burn.
                 </h3>
                 <p className="text-xs font-mono text-slate-700 mt-2">
-                  Basic French Greetings<br/>Part 1 • Lesson 1
+                  No Equipment • Full Body<br/>15 Minutes • 120 kcal
                 </p>
               </div>
 
               <div className="pt-2 flex justify-end">
                 <button 
-                  onClick={() => openQuickLog('burn')}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    triggerClickSound();
+                    const quickWorkout = {
+                      id: Date.now(),
+                      name: '15-Min Core Burn',
+                      type: 'hiit',
+                      duration: 15,
+                      distance: 0,
+                      calories: 120,
+                      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setWorkouts([quickWorkout, ...workouts]);
+                    setActiveBurn(prev => prev + 120);
+                    setTotalXp(prev => prev + 50);
+                    alert("Workout Started & Logged! +120 kcal, +50 XP");
+                  }}
                   className="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+                  title="Start Workout"
                 >
                   <Play className="w-5 h-5 fill-white ml-0.5" />
                 </button>
@@ -730,7 +924,15 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           {/* Daily Quests Section */}
           <div className="px-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-300">Daily Quest</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-300">Daily Quest</h2>
+                <button 
+                  onClick={() => setIsAddQuestModalOpen(true)}
+                  className="p-1 rounded-md bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
               <span className="text-xs font-mono text-slate-400">
                 {dailyQuests.filter(q => q.completed).length} / {dailyQuests.length}
               </span>
@@ -757,10 +959,21 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                     </div>
                   </div>
 
-                  <div className={`w-8 h-8 rounded-2xl border-2 flex items-center justify-center transition-all ${
-                    quest.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-600'
-                  }`}>
-                    {quest.completed && <Check className="w-5 h-5 stroke-[3]" />}
+                  <div className="flex items-center gap-3">
+                    {quest.id.toString().startsWith('custom-') && (
+                      <button
+                        onClick={(e) => handleDeleteQuest(quest.id, e)}
+                        className="p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
+                        title="Delete Quest"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <div className={`w-8 h-8 rounded-2xl border-2 flex items-center justify-center transition-all ${
+                      quest.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-600'
+                    }`}>
+                      {quest.completed && <Check className="w-5 h-5 stroke-[3]" />}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1056,7 +1269,67 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
       {/* TAB 4: GOALS & CUSTOM CHALLENGES TAB */}
       {activeTab === 'goals' && (
         <div className="px-5 space-y-5 animate-fade-in">
-          <div className="flex items-center justify-between">
+          {/* 4 ATHLETIC CHARACTER SECTIONS (Matching User Screenshot) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold font-mono uppercase tracking-wider text-slate-300">
+                ATHLETIC SECTIONS & CHARACTERS
+              </h2>
+              <span className="text-xs font-mono text-blue-400">FITPULSE SYSTEM</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Section 1: Route & Cardio Paths (Cyclist) */}
+              <div 
+                onClick={() => openQuickLog('steps')}
+                className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all flex flex-col items-center text-center cursor-pointer group shadow-lg"
+              >
+                <CyclistCharacter className="w-24 h-24 transition-transform group-hover:scale-110" />
+                <h3 className="text-xs font-bold font-mono text-white mt-2 uppercase tracking-wide">
+                  ROUTE & CARDIO PATHS
+                </h3>
+                <span className="text-[10px] text-slate-400 font-mono mt-1">Gym Floor & GPS</span>
+              </div>
+
+              {/* Section 2: Performance & Strength Goals (Weightlifter) */}
+              <div 
+                onClick={() => setActiveTab('workout')}
+                className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all flex flex-col items-center text-center cursor-pointer group shadow-lg"
+              >
+                <WeightlifterCharacter className="w-24 h-24 transition-transform group-hover:scale-110" />
+                <h3 className="text-xs font-bold font-mono text-white mt-2 uppercase tracking-wide">
+                  PERFORMANCE & STRENGTH
+                </h3>
+                <span className="text-[10px] text-blue-400 font-mono mt-1 font-bold">405 lbs PR Deadlift</span>
+              </div>
+
+              {/* Section 3: Swimming & Lap Count (Swimmer) */}
+              <div 
+                onClick={() => setIsAnalyticsModalOpen(true)}
+                className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all flex flex-col items-center text-center cursor-pointer group shadow-lg"
+              >
+                <SwimmerCharacter className="w-24 h-24 transition-transform group-hover:scale-110" />
+                <h3 className="text-xs font-bold font-mono text-white mt-2 uppercase tracking-wide">
+                  SWIMMING & LAP COUNT
+                </h3>
+                <span className="text-[10px] text-slate-400 font-mono mt-1">Pace Clock & Laps</span>
+              </div>
+
+              {/* Section 4: Nutrition & Macros (Foodie Guy) */}
+              <div 
+                onClick={() => setActiveTab('food')}
+                className="p-4 rounded-3xl bg-slate-900 border border-slate-800 hover:border-blue-500 transition-all flex flex-col items-center text-center cursor-pointer group shadow-lg"
+              >
+                <FoodieCharacter className="w-24 h-24 transition-transform group-hover:scale-110" />
+                <h3 className="text-xs font-bold font-mono text-white mt-2 uppercase tracking-wide">
+                  NUTRITION & MACROS
+                </h3>
+                <span className="text-[10px] text-slate-400 font-mono mt-1">Foodie Guy's Picks</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-rose-500" />
               <h2 className="text-base font-bold uppercase font-mono text-white">Custom Challenges ({challenges.length})</h2>
@@ -1086,13 +1359,15 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                         <p className={`text-[11px] ${mutedTextClass}`}>{c.desc}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDeleteChallenge(c.id)}
-                      className="p-1 rounded-xl hover:bg-red-500/20 text-red-400 transition-colors"
-                      title="Delete Challenge"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {c.id.toString().startsWith('custom-') && (
+                      <button
+                        onClick={() => handleDeleteChallenge(c.id)}
+                        className="p-1 rounded-xl hover:bg-red-500/20 text-red-400 transition-colors"
+                        title="Delete Challenge"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -1131,14 +1406,306 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
         </div>
       )}
 
+      {/* TAB 5: LEADERBOARD & COMMUNITY RANKINGS TAB */}
+      {activeTab === 'leaderboard' && (
+        <div className="px-5 space-y-5 animate-fade-in pb-20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Crown className="w-5 h-5 text-amber-400" />
+              <h2 className="text-base font-bold uppercase font-mono text-white">Global Leaderboard &amp; Rankings</h2>
+            </div>
+            <button onClick={() => setActiveTab('dashboard')} className="text-xs font-mono text-slate-400 hover:text-white">← Back</button>
+          </div>
+
+          {/* Top Summary Metrics Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono">
+            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
+              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-blue-400" /> Total Athletes
+              </div>
+              <div className="text-base font-extrabold text-white">1,248</div>
+            </div>
+            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
+              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-amber-400" /> Community XP
+              </div>
+              <div className="text-base font-extrabold text-amber-400">84.2K</div>
+            </div>
+            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
+              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
+                <Flame className="w-3.5 h-3.5 text-rose-500" /> Avg Burn
+              </div>
+              <div className="text-base font-extrabold text-rose-400">1.4K kcal</div>
+            </div>
+            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
+              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
+                <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" /> Total Kudos
+              </div>
+              <div className="text-base font-extrabold text-emerald-400">1.8K 👏</div>
+            </div>
+          </div>
+
+          {/* Controls: Time Horizon & Category Selection */}
+          <div className={`p-4 rounded-3xl border space-y-3.5 ${cardBgClass}`}>
+            {/* Time Horizon Pills */}
+            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
+              <span className="text-[10px] font-mono font-bold uppercase text-slate-400 flex items-center gap-1 shrink-0">
+                <Clock className="w-3.5 h-3.5 text-rose-500" /> Timeframe:
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {[
+                  { id: 'today', label: 'Today' },
+                  { id: 'week', label: 'This Week' },
+                  { id: 'month', label: 'This Month' },
+                  { id: 'all', label: 'All-Time' }
+                ].map(tf => (
+                  <button
+                    key={tf.id}
+                    onClick={() => {
+                      triggerClickSound();
+                      setLbTimeframe(tf.id);
+                    }}
+                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all ${
+                      lbTimeframe === tf.id 
+                        ? 'bg-rose-600 text-white shadow-md' 
+                        : `${subCardBgClass} hover:text-white`
+                    }`}
+                  >
+                    {tf.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Category Ranking Pills */}
+            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 border-t border-slate-800/80 pt-3">
+              <span className="text-[10px] font-mono font-bold uppercase text-slate-400 flex items-center gap-1 shrink-0">
+                <Filter className="w-3.5 h-3.5 text-amber-400" /> Metric:
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {[
+                  { id: 'xp', label: '⚡ XP & Rank' },
+                  { id: 'burn', label: '🔥 Calories' },
+                  { id: 'distance', label: '🏃 Distance' },
+                  { id: 'streak', label: '💧 Streak' }
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      triggerClickSound();
+                      setLbCategory(cat.id);
+                    }}
+                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all ${
+                      lbCategory === cat.id 
+                        ? 'bg-amber-400 text-slate-950 shadow-md' 
+                        : `${subCardBgClass} hover:text-white`
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Search Input Box */}
+            <div className="relative pt-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
+              <input
+                type="text"
+                placeholder="Search athlete or badge title..."
+                value={lbSearch}
+                onChange={e => setLbSearch(e.target.value)}
+                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-400 ${subCardBgClass}`}
+              />
+            </div>
+          </div>
+
+          {/* Top 3 Podium Highlights */}
+          {getLeaderboardData().length >= 3 && !lbSearch && (
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
+              {/* 2nd Place */}
+              <div className={`p-3.5 rounded-3xl border border-slate-400/40 text-center space-y-2 relative ${cardBgClass}`}>
+                <div className="w-8 h-8 rounded-full bg-slate-300 text-slate-950 font-bold font-mono text-xs flex items-center justify-center mx-auto shadow-md">
+                  2nd
+                </div>
+                <div className="text-2xl">{getLeaderboardData()[1]?.avatar}</div>
+                <div>
+                  <div className="text-xs font-bold text-white truncate">{getLeaderboardData()[1]?.name}</div>
+                  <span className="text-[10px] font-mono text-slate-400 block truncate">{getLeaderboardData()[1]?.badge}</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-slate-300">
+                  {lbCategory === 'xp' && `${getLeaderboardData()[1]?.xpVal} XP`}
+                  {lbCategory === 'burn' && `${getLeaderboardData()[1]?.burnVal} kcal`}
+                  {lbCategory === 'distance' && `${getLeaderboardData()[1]?.distVal} km`}
+                  {lbCategory === 'streak' && `${getLeaderboardData()[1]?.streak} days`}
+                </div>
+              </div>
+
+              {/* 1st Place (Gold Crown) */}
+              <div className={`p-4 rounded-3xl border-2 border-amber-400/80 text-center space-y-2 relative bg-gradient-to-b from-amber-500/10 via-slate-900 to-slate-950 shadow-xl -translate-y-2`}>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold uppercase flex items-center gap-1 shadow-md">
+                  <Crown className="w-3 h-3 fill-slate-950" /> 1ST CHAMP
+                </div>
+                <div className="text-3xl pt-1">{getLeaderboardData()[0]?.avatar}</div>
+                <div>
+                  <div className="text-xs font-extrabold text-amber-300 truncate">{getLeaderboardData()[0]?.name}</div>
+                  <span className="text-[10px] font-mono text-amber-400/80 block truncate">{getLeaderboardData()[0]?.badge}</span>
+                </div>
+                <div className="text-sm font-mono font-extrabold text-amber-400">
+                  {lbCategory === 'xp' && `${getLeaderboardData()[0]?.xpVal} XP`}
+                  {lbCategory === 'burn' && `${getLeaderboardData()[0]?.burnVal} kcal`}
+                  {lbCategory === 'distance' && `${getLeaderboardData()[0]?.distVal} km`}
+                  {lbCategory === 'streak' && `${getLeaderboardData()[0]?.streak} days`}
+                </div>
+              </div>
+
+              {/* 3rd Place */}
+              <div className={`p-3.5 rounded-3xl border border-amber-700/40 text-center space-y-2 relative ${cardBgClass}`}>
+                <div className="w-8 h-8 rounded-full bg-amber-800 text-amber-100 font-bold font-mono text-xs flex items-center justify-center mx-auto shadow-md">
+                  3rd
+                </div>
+                <div className="text-2xl">{getLeaderboardData()[2]?.avatar}</div>
+                <div>
+                  <div className="text-xs font-bold text-white truncate">{getLeaderboardData()[2]?.name}</div>
+                  <span className="text-[10px] font-mono text-slate-400 block truncate">{getLeaderboardData()[2]?.badge}</span>
+                </div>
+                <div className="text-xs font-mono font-bold text-amber-600">
+                  {lbCategory === 'xp' && `${getLeaderboardData()[2]?.xpVal} XP`}
+                  {lbCategory === 'burn' && `${getLeaderboardData()[2]?.burnVal} kcal`}
+                  {lbCategory === 'distance' && `${getLeaderboardData()[2]?.distVal} km`}
+                  {lbCategory === 'streak' && `${getLeaderboardData()[2]?.streak} days`}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Leaderboard Table */}
+          <div className={`p-5 rounded-3xl border space-y-4 overflow-hidden ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-xs font-bold uppercase font-mono flex items-center gap-2 text-slate-200">
+                <Trophy className="w-4 h-4 text-amber-400" /> Official Athlete Standings ({getLeaderboardData().length})
+              </h3>
+              <span className="text-[10px] font-mono text-slate-400">Live Auto-Synced</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-mono border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider">
+                    <th className="py-2.5 px-3"># RANK</th>
+                    <th className="py-2.5 px-3">ATHLETE</th>
+                    <th className="py-2.5 px-3">TIER / BADGE</th>
+                    <th className="py-2.5 px-3 text-right">
+                      {lbCategory === 'xp' && 'TOTAL XP'}
+                      {lbCategory === 'burn' && 'CALORIES BURNED'}
+                      {lbCategory === 'distance' && 'DISTANCE'}
+                      {lbCategory === 'streak' && 'STREAK'}
+                    </th>
+                    <th className="py-2.5 px-3 text-center">STREAK</th>
+                    <th className="py-2.5 px-3 text-right">COMMUNITY KUDOS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-xs">
+                  {getLeaderboardData().map((player, idx) => {
+                    const rankNum = idx + 1;
+                    const isMe = player.isCurrentUser;
+                    return (
+                      <tr 
+                        key={player.id}
+                        className={`transition-colors ${
+                          isMe 
+                            ? 'bg-rose-950/30 border-l-4 border-l-rose-500 hover:bg-rose-950/40' 
+                            : 'hover:bg-slate-800/40'
+                        }`}
+                      >
+                        {/* Rank Column */}
+                        <td className="py-3 px-3 font-bold">
+                          {rankNum === 1 ? (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-extrabold text-[11px] flex items-center gap-1 w-fit shadow">
+                              🥇 1st
+                            </span>
+                          ) : rankNum === 2 ? (
+                            <span className="px-2 py-0.5 rounded-full bg-slate-300 text-slate-950 font-extrabold text-[11px] flex items-center gap-1 w-fit shadow">
+                              🥈 2nd
+                            </span>
+                          ) : rankNum === 3 ? (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-800 text-amber-100 font-extrabold text-[11px] flex items-center gap-1 w-fit shadow">
+                              🥉 3rd
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 font-mono text-xs pl-2">#{rankNum}</span>
+                          )}
+                        </td>
+
+                        {/* Athlete Name & Avatar */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-lg p-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60">{player.avatar}</span>
+                            <div>
+                              <div className={`font-bold flex items-center gap-1.5 ${isMe ? 'text-rose-400' : 'text-white'}`}>
+                                {player.name}
+                                {isMe && (
+                                  <span className="px-1.5 py-0.2 rounded bg-rose-600 text-white text-[9px] font-mono font-extrabold uppercase">
+                                    YOU
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Badge / Tier */}
+                        <td className="py-3 px-3">
+                          <span className="text-[11px] text-slate-300 font-sans font-medium px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-700/50">
+                            {player.badge}
+                          </span>
+                        </td>
+
+                        {/* Category Metric Score */}
+                        <td className="py-3 px-3 text-right font-extrabold">
+                          {lbCategory === 'xp' && <span className="text-amber-400">{player.xpVal.toLocaleString()} XP</span>}
+                          {lbCategory === 'burn' && <span className="text-rose-400">{player.burnVal.toLocaleString()} kcal</span>}
+                          {lbCategory === 'distance' && <span className="text-emerald-400">{player.distVal} km</span>}
+                          {lbCategory === 'streak' && <span className="text-blue-400">{player.streak} Days</span>}
+                        </td>
+
+                        {/* Streak */}
+                        <td className="py-3 px-3 text-center">
+                          <span className="px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[11px] font-bold">
+                            🔥 {player.streak}d
+                          </span>
+                        </td>
+
+                        {/* Kudos Action */}
+                        <td className="py-3 px-3 text-right">
+                          <button
+                            onClick={() => handleGiveKudos(player.id)}
+                            className="px-2.5 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold transition-all active:scale-95 flex items-center gap-1 ml-auto"
+                            title="Give Kudos"
+                          >
+                            <span>👏</span>
+                            <span>{player.kudos}</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 4. FLOATING PILL BOTTOM NAVIGATION BAR (Matches Uploaded Screenshot UI) */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm z-40">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-40">
         <div className="w-full bg-[#18181b]/90 backdrop-blur-xl border border-slate-800 rounded-full p-2.5 shadow-2xl flex items-center justify-around">
           {[
             { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
             { id: 'workout', label: 'Workout', icon: Dumbbell },
             { id: 'food', label: 'Food', icon: UtensilsCrossed },
-            { id: 'goals', label: 'Goals', icon: Trophy }
+            { id: 'goals', label: 'Goals', icon: Trophy },
+            { id: 'leaderboard', label: 'Rankings', icon: Crown }
           ].map((tab) => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -1154,6 +1721,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                     ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/40 scale-110' 
                     : 'text-slate-400 hover:text-white'
                 }`}
+                title={tab.label}
               >
                 <Icon className="w-5 h-5" />
               </button>
@@ -1252,6 +1820,83 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
         </div>
       )}
 
+      {/* CREATE CUSTOM QUEST MODAL */}
+      {isAddQuestModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <form onSubmit={handleAddQuest} className={`relative w-full max-w-md border rounded-3xl p-6 space-y-4 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-emerald-500" />
+                <h3 className="text-base font-bold font-mono uppercase text-white">Add Custom Quest</h3>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsAddQuestModalOpen(false)}
+                className={`p-1 rounded-lg ${mutedTextClass}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Quest Title</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. 100 Pushups"
+                  value={newQuestForm.title}
+                  onChange={e => setNewQuestForm({ ...newQuestForm, title: e.target.value })}
+                  className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                />
+              </div>
+
+              <div>
+                <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Short Description</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Complete 100 pushups before bed"
+                  value={newQuestForm.desc}
+                  onChange={e => setNewQuestForm({ ...newQuestForm, desc: e.target.value })}
+                  className={`w-full px-3.5 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Reward XP</label>
+                  <input 
+                    type="number"
+                    placeholder="e.g. 25"
+                    value={newQuestForm.xp}
+                    onChange={e => setNewQuestForm({ ...newQuestForm, xp: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`text-[10px] font-mono uppercase block mb-1 ${mutedTextClass}`}>Icon Type</label>
+                  <select 
+                    value={newQuestForm.type}
+                    onChange={e => setNewQuestForm({ ...newQuestForm, type: e.target.value })}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-emerald-500 ${subCardBgClass}`}
+                  >
+                    <option value="time">Time ⏱️</option>
+                    <option value="article">Activity 🏃</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add Quest
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* 6. QUICK STAT LOGGER MODAL (HYDRATION, ACTIVE BURN, SUGAR CUT) */}
       {quickLogModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
@@ -1261,10 +1906,12 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 {quickLogModal.type === 'hydration' && <Droplets className="w-5 h-5 text-blue-500" />}
                 {quickLogModal.type === 'burn' && <Flame className="w-5 h-5 text-orange-500" />}
                 {quickLogModal.type === 'sugar' && <Package className="w-5 h-5 text-emerald-500" />}
+                {quickLogModal.type === 'steps' && <Footprints className="w-5 h-5 text-amber-500" />}
                 <h3 className="text-base font-bold font-mono uppercase text-white">
                   {quickLogModal.type === 'hydration' && 'Log Water Hydration Intake'}
                   {quickLogModal.type === 'burn' && 'Log Calories Burned'}
                   {quickLogModal.type === 'sugar' && 'Log Refined Sugar Avoided'}
+                  {quickLogModal.type === 'steps' && 'Log Daily Steps'}
                 </h3>
               </div>
               <button 
@@ -1367,6 +2014,55 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                   <button
                     onClick={() => customQuickValue && handleAddActiveBurnKcal(parseInt(customQuickValue))}
                     className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs uppercase"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEPS PRESET BUTTONS */}
+            {quickLogModal.type === 'steps' && (
+              <div className="space-y-3 font-mono">
+                <p className="text-xs text-slate-400">Select a quick step count or enter custom amount:</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <button
+                    onClick={() => handleAddSteps(500)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
+                  >
+                    🚶‍♂️ +500 <span className="text-[10px] text-amber-400 block font-normal">(Short Walk)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddSteps(1000)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
+                  >
+                    🚶‍♂️ +1,000 <span className="text-[10px] text-amber-400 block font-normal">(Block Walk)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddSteps(5000)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
+                  >
+                    🏃 +5,000 <span className="text-[10px] text-amber-400 block font-normal">(Long Walk)</span>
+                  </button>
+                  <button
+                    onClick={() => handleAddSteps(10000)}
+                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
+                  >
+                    🏃 +10,000 <span className="text-[10px] text-amber-400 block font-normal">(Daily Goal)</span>
+                  </button>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <input
+                    type="number"
+                    placeholder="Custom steps (e.g. 2450)"
+                    value={customQuickValue}
+                    onChange={e => setCustomQuickValue(e.target.value)}
+                    className={`flex-1 px-3.5 py-2 rounded-xl border text-xs focus:outline-none focus:border-amber-500 ${subCardBgClass}`}
+                  />
+                  <button
+                    onClick={() => customQuickValue && handleAddSteps(parseInt(customQuickValue))}
+                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase"
                   >
                     Add
                   </button>
@@ -1505,6 +2201,30 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
 
             <div className="space-y-4">
               
+              {/* Health Data Integration (Google Fit / Apple Health) */}
+              <div className={`p-3.5 rounded-2xl border space-y-2 font-mono ${subCardBgClass}`}>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold flex items-center gap-1.5 text-white">
+                    <Smartphone className="w-4 h-4 text-blue-500" /> Google Fit Sync
+                  </span>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold border ${isGoogleConnected ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' : 'bg-slate-500/20 text-slate-400 border-slate-500/30'}`}>
+                    {isGoogleConnected ? 'CONNECTED ✓' : 'NOT CONNECTED'}
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-400 space-y-1">
+                  <div>Auto-sync Daily Steps, Workouts, and Active Burn data.</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGoogleSync}
+                  disabled={isSyncing || isGoogleConnected}
+                  className={`w-full py-1.5 mt-1 rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all ${isGoogleConnected ? 'bg-blue-600/20 text-blue-500 cursor-not-allowed' : 'bg-slate-800 hover:bg-slate-700 text-white'}`}
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                  <span>{isSyncing ? 'Connecting to Google Fit...' : isGoogleConnected ? 'Connected & Syncing' : 'Connect to Google Fit'}</span>
+                </button>
+              </div>
+
               {/* GitHub Repository Cloud Sync Section */}
               <div className={`p-3.5 rounded-2xl border space-y-2 font-mono ${subCardBgClass}`}>
                 <div className="flex items-center justify-between">

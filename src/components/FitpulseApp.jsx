@@ -526,9 +526,11 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
       {/* 1. GAMIFIED TOP HEADER: Greeting, User Name, Hamburger Menu & User Profile Avatar */}
       <div className="w-full px-5 pt-6 pb-4 flex items-center justify-between">
         <div>
-          <span className="text-xs font-serif italic text-slate-400 block">Good afternoon,</span>
+          <span className="text-xs font-serif italic text-slate-400 block">
+            {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'},
+          </span>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
-            Yadhu Krishnan!
+            {username}!
           </h1>
         </div>
 
@@ -574,9 +576,9 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           <div 
             onClick={() => setIsSettingsModalOpen(true)}
             className="w-10 h-10 rounded-full bg-emerald-600 border-2 border-emerald-400 overflow-hidden cursor-pointer shadow-md flex items-center justify-center text-white font-bold text-sm"
-            title="Yadhu Krishnan Profile"
+            title={`${username} Profile`}
           >
-            YK
+            {username.substring(0, 2).toUpperCase()}
           </div>
         </div>
       </div>

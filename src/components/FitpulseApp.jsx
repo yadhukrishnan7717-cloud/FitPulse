@@ -642,7 +642,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           <span className="text-xs font-serif italic text-slate-400 block">
             {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'},
           </span>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+          <h1 className={`text-xl font-bold tracking-tight flex items-center gap-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
             {username}!
           </h1>
         </div>
@@ -793,7 +793,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
               <Flame className="w-5 h-5 mx-auto text-amber-500" />
-              <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">{totalXp}</div>
+              <div className={`text-base font-extrabold font-mono ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{totalXp}</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Total XP</span>
             </div>
 
@@ -802,7 +802,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
               <BookOpen className="w-5 h-5 mx-auto text-rose-500" />
-              <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">0</div>
+              <div className={`text-base font-extrabold font-mono ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>0</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Lessons</span>
             </div>
 
@@ -811,7 +811,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
               <Clock className="w-5 h-5 mx-auto text-indigo-400" />
-              <div className="text-base font-extrabold font-mono text-slate-900 dark:text-white">35</div>
+              <div className={`text-base font-extrabold font-mono ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>35</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Minutes</span>
             </div>
           </div>

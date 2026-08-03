@@ -3,8 +3,12 @@ import { FitpulseApp } from './components/FitpulseApp';
 import { Login } from './components/Login';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('User');
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('fitpulse_is_logged_in') === 'true';
+  });
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem('fitpulse_username') || 'User';
+  });
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('fitpulse_is_dark_mode');
@@ -27,7 +31,12 @@ export default function App() {
   }, []);
 
   if (!isLoggedIn) {
-    return <Login onLoginSuccess={(name) => { setUsername(name); setIsLoggedIn(true); }} />;
+    return <Login onLoginSuccess={(name) => { 
+      setUsername(name); 
+      setIsLoggedIn(true); 
+      localStorage.setItem('fitpulse_is_logged_in', 'true');
+      localStorage.setItem('fitpulse_username', name);
+    }} />;
   }
 
   return (
@@ -36,7 +45,14 @@ export default function App() {
     }`}>
       {/* App Container */}
       <main className="flex-1 w-full max-w-4xl mx-auto flex items-center justify-center">
-        <FitpulseApp username={username} onLogout={() => setIsLoggedIn(false)} />
+        <FitpulseApp 
+          username={username} 
+          onLogout={() => {
+            setIsLoggedIn(false);
+            localStorage.removeItem('fitpulse_is_logged_in');
+            localStorage.removeItem('fitpulse_username');
+          }} 
+        />
       </main>
 
       {/* Footer */}

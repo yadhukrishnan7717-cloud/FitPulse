@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, updateProfile } from "firebase/auth";
+import { auth } from '../firebase';
 import './Login.css';
 
 export function Login({ onLoginSuccess }) {
@@ -6,22 +8,42 @@ export function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (view === 'login') {
-      console.log('Login attempted:', email);
-      const userName = name || email.split('@')[0] || 'User';
-      onLoginSuccess(userName);
-    } else if (view === 'signup') {
-      console.log('Signup attempted:', name, email);
-      alert('Account created successfully for ' + name + '! You can now log in.');
-      setView('login');
-    } else {
-      console.log('Password reset requested for:', email);
-      alert('Password reset link sent to ' + email);
-      setView('login');
+    setError('');
+    setMessage('');
+    setLoading(true);
+
+    try {
+      if (view === 'login') {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        if (!userCredential.user.emailVerified) {
+          setError('Please verify your email before logging in. Check your inbox.');
+          auth.signOut();
+        } else {
+          onLoginSuccess(userCredential.user.displayName || email.split('@')[0]);
+        }
+      } else if (view === 'signup') {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        await sendEmailVerification(userCredential.user);
+        setMessage('Account created! Please check your email to verify your account before logging in.');
+        auth.signOut();
+        setView('login');
+      } else {
+        await sendPasswordResetEmail(auth, email);
+        setMessage('Password reset link sent to ' + email);
+        setView('login');
+      }
+    } catch (err) {
+      setError(err.message.replace('Firebase: ', ''));
     }
+
+    setLoading(false);
   };
 
   return (
@@ -43,6 +65,8 @@ export function Login({ onLoginSuccess }) {
           </p>
         </div>
         <form onSubmit={handleSubmit} className="login-form">
+          {error && <div style={{ color: '#ef4444', fontSize: '13px', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>{error}</div>}
+          {message && <div style={{ color: '#10b981', fontSize: '13px', backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>{message}</div>}
           {view === 'signup' && (
             <div className="input-group">
               <label htmlFor="name">Full Name</label>
@@ -100,10 +124,14 @@ export function Login({ onLoginSuccess }) {
             </div>
           )}
 
-          <button type="submit" className="login-button">
-            {view === 'login' && 'Sign In'}
-            {view === 'signup' && 'Sign Up'}
-            {view === 'forgot' && 'Send Reset Link'}
+          <button type="submit" className="login-button" disabled={loading} style={{ opacity: loading ? 0.7 : 1 }}>
+            {loading ? 'Processing...' : (
+              <>
+                {view === 'login' && 'Sign In'}
+                {view === 'signup' && 'Sign Up'}
+                {view === 'forgot' && 'Send Reset Link'}
+              </>
+            )}
           </button>
         </form>
 

@@ -1,19 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { FitpulseApp } from './components/FitpulseApp';
 import { Login } from './components/Login';
+import { auth } from './firebase';
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem('fitpulse_is_logged_in') === 'true';
-  });
-  const [username, setUsername] = useState(() => {
-    return localStorage.getItem('fitpulse_username') || 'User';
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('User');
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('fitpulse_is_dark_mode');
     return saved !== null ? JSON.parse(saved) : true;
   });
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && user.emailVerified) {
+        setIsLoggedIn(true);
+        setUsername(user.displayName || user.email?.split('@')[0] || 'User');
+      } else {
+        setIsLoggedIn(false);
+      }
+      setLoadingAuth(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -30,13 +42,12 @@ export default function App() {
     };
   }, []);
 
+  if (loadingAuth) {
+    return <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a', color: 'white', fontFamily: 'Inter, sans-serif' }}>Authenticating...</div>;
+  }
+
   if (!isLoggedIn) {
-    return <Login onLoginSuccess={(name) => { 
-      setUsername(name); 
-      setIsLoggedIn(true); 
-      localStorage.setItem('fitpulse_is_logged_in', 'true');
-      localStorage.setItem('fitpulse_username', name);
-    }} />;
+    return <Login onLoginSuccess={() => {}} />;
   }
 
   return (
@@ -47,10 +58,8 @@ export default function App() {
       <main className="flex-1 w-full max-w-4xl mx-auto flex items-center justify-center">
         <FitpulseApp 
           username={username} 
-          onLogout={() => {
-            setIsLoggedIn(false);
-            localStorage.removeItem('fitpulse_is_logged_in');
-            localStorage.removeItem('fitpulse_username');
+          onLogout={async () => {
+            await signOut(auth);
           }} 
         />
       </main>

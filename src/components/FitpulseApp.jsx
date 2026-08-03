@@ -320,6 +320,35 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
     }));
   };
 
+  // Automatic Daily Streak Analyzer (Calculates streak days automatically)
+  useEffect(() => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const lastActive = localStorage.getItem('fitpulse_last_active_date');
+      const savedStreak = localStorage.getItem('fitpulse_streak_count');
+      
+      let currentStreak = savedStreak ? parseInt(savedStreak) : 5;
+
+      if (lastActive && lastActive !== today) {
+        const lastDate = new Date(lastActive);
+        const todayDate = new Date(today);
+        const diffDays = Math.round((todayDate - lastDate) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          currentStreak += 1;
+        } else if (diffDays > 1) {
+          currentStreak = 1;
+        }
+      }
+
+      localStorage.setItem('fitpulse_last_active_date', today);
+      localStorage.setItem('fitpulse_streak_count', currentStreak.toString());
+      setStreakDays(currentStreak);
+    } catch {
+      // Fallback
+    }
+  }, []);
+
   // Save State Persistence
   useEffect(() => {
     localStorage.setItem('fitpulse_is_dark_mode', JSON.stringify(isDarkMode));
@@ -849,15 +878,10 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                   <WeightlifterCharacter className="w-16 h-16 transform group-hover:scale-110 transition-transform" />
                 </div>
 
-                <button
-                  onClick={() => {
-                    triggerClickSound();
-                    setStreakDays(prev => prev + 1);
-                  }}
-                  className="px-3.5 py-2 rounded-2xl bg-blue-600 hover:bg-blue-500 text-xs font-mono font-bold text-white transition-all shadow-md border border-blue-400/40 hover:scale-105 active:scale-95"
-                >
-                  +1 Day
-                </button>
+                <div className="px-3 py-1.5 rounded-2xl bg-blue-500/20 text-blue-300 text-[10px] font-mono font-bold border border-blue-400/30 flex items-center gap-1.5 shadow-sm">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  AUTO-ANALYZED
+                </div>
               </div>
             </div>
           </div>

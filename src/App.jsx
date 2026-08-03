@@ -2,10 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import { FitpulseApp } from './components/FitpulseApp';
 import { Login } from './components/Login';
+import { Onboarding } from './components/Onboarding';
 
 export default function App() {
   const { isAuthenticated, isLoading, user, logout } = useAuth0();
+  const [hasCompletedProfile, setHasCompletedProfile] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const profileKey = `fitpulse_profile_${user.sub}`;
+      const savedProfile = localStorage.getItem(profileKey);
+      if (savedProfile) {
+        setHasCompletedProfile(true);
+        setUserProfile(JSON.parse(savedProfile));
+      } else {
+        setHasCompletedProfile(false);
+      }
+    }
+  }, [isAuthenticated, user]);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('fitpulse_is_dark_mode');
@@ -37,6 +52,20 @@ export default function App() {
     return <Login onLoginSuccess={() => {}} />;
   }
 
+  if (!hasCompletedProfile) {
+    return (
+      <Onboarding 
+        user={user} 
+        onComplete={(profileData) => {
+          const profileKey = `fitpulse_profile_${user.sub}`;
+          localStorage.setItem(profileKey, JSON.stringify(profileData));
+          setUserProfile(profileData);
+          setHasCompletedProfile(true);
+        }} 
+      />
+    );
+  }
+
   return (
     <div className={`min-h-screen transition-colors duration-300 flex flex-col justify-between p-3 sm:p-6 ${
       isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
@@ -44,7 +73,8 @@ export default function App() {
       {/* App Container */}
       <main className="flex-1 w-full max-w-4xl mx-auto flex items-center justify-center">
         <FitpulseApp 
-          username={user?.name || user?.nickname || user?.email?.split('@')[0] || 'User'} 
+          username={userProfile?.name || user?.name || user?.nickname || user?.email?.split('@')[0] || 'User'} 
+          profile={userProfile}
           onLogout={() => logout({ logoutParams: { returnTo: window.location.origin } })} 
         />
       </main>

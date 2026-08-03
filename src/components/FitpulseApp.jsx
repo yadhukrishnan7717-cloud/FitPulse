@@ -57,7 +57,7 @@ import {
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
-export const FitpulseApp = ({ onLogout }) => {
+export const FitpulseApp = ({ username = 'User', onLogout }) => {
   // Navigation State (4 Floating Bottom Tabs: 'dashboard', 'workout', 'food', 'goals')
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -608,6 +608,12 @@ export const FitpulseApp = ({ onLogout }) => {
       {/* TAB 1: DASHBOARD / HOME */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
+          {/* Greeting Section */}
+          <div className="px-5 pt-2">
+            <h1 className="text-2xl font-bold font-mono text-white">Hi, {username}!</h1>
+            <p className={`text-xs font-mono mt-1 ${mutedTextClass}`}>Ready for your next lesson?</p>
+          </div>
+
           {/* Three Stat Cards Row (XP, Workouts, Active Mins) */}
           <div className="px-5 grid grid-cols-3 gap-3">
             <div 

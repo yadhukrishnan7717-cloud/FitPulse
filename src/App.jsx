@@ -4,6 +4,7 @@ import { Login } from './components/Login';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState('User');
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('fitpulse_is_dark_mode');
@@ -26,7 +27,7 @@ export default function App() {
   }, []);
 
   if (!isLoggedIn) {
-    return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
+    return <Login onLoginSuccess={(name) => { setUsername(name); setIsLoggedIn(true); }} />;
   }
 
   return (
@@ -35,7 +36,7 @@ export default function App() {
     }`}>
       {/* App Container */}
       <main className="flex-1 w-full max-w-4xl mx-auto flex items-center justify-center">
-        <FitpulseApp onLogout={() => setIsLoggedIn(false)} />
+        <FitpulseApp username={username} onLogout={() => setIsLoggedIn(false)} />
       </main>
 
       {/* Footer */}

@@ -11,7 +11,8 @@ export function Login({ onLoginSuccess }) {
     e.preventDefault();
     if (view === 'login') {
       console.log('Login attempted:', email);
-      onLoginSuccess();
+      const userName = name || email.split('@')[0] || 'User';
+      onLoginSuccess(userName);
     } else if (view === 'signup') {
       console.log('Signup attempted:', name, email);
       alert('Account created successfully for ' + name + '! You can now log in.');
@@ -27,11 +28,14 @@ export function Login({ onLoginSuccess }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h2>
+          <h2 style={{ fontSize: '38px', marginBottom: '16px', letterSpacing: '2px' }}>
+            <span style={{ color: 'var(--primary)' }}>FIT</span>PULSE
+          </h2>
+          <h3 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '8px', color: 'white' }}>
             {view === 'login' && 'Welcome Back'}
             {view === 'signup' && 'Create Account'}
             {view === 'forgot' && 'Reset Password'}
-          </h2>
+          </h3>
           <p>
             {view === 'login' && 'Please enter your details to sign in.'}
             {view === 'signup' && 'Sign up to get started.'}

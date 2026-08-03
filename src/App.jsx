@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FitpulseApp } from './components/FitpulseApp';
+import { Login } from './components/Login';
 
 export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('fitpulse_is_dark_mode');
     return saved !== null ? JSON.parse(saved) : true;
@@ -21,6 +24,10 @@ export default function App() {
       clearInterval(interval);
     };
   }, []);
+
+  if (!isLoggedIn) {
+    return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 flex flex-col justify-between p-3 sm:p-6 ${

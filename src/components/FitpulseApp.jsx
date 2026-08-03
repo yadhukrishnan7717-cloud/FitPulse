@@ -49,7 +49,11 @@ import {
   Play,
   Star,
   BookOpen,
-  Menu
+  Menu,
+  Library,
+  Hourglass,
+  Newspaper,
+  Book
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
@@ -223,8 +227,8 @@ export const FitpulseApp = () => {
 
   // Daily Quests State
   const [dailyQuests, setDailyQuests] = useState([
-    { id: 1, title: 'Burn 500 Calories', desc: 'Spend 25 minutes exercising', completed: true, xp: 20 },
-    { id: 2, title: 'Drink 2,500ml Water', desc: 'Reach 100% hydration target', completed: false, xp: 15 }
+    { id: 1, title: 'Learn for 10 Minutes', desc: 'Spend 10 minutes learning', completed: false, xp: 10, type: 'time' },
+    { id: 2, title: 'Read one full news article', desc: 'Earn +$4', completed: false, xp: 4, type: 'article' }
   ]);
 
   // Save State Persistence
@@ -610,7 +614,7 @@ export const FitpulseApp = () => {
               onClick={() => openQuickLog('burn')}
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <Flame className="w-5 h-5 mx-auto text-orange-400" />
+              <Flame className="w-5 h-5 mx-auto text-white" />
               <div className="text-base font-extrabold font-mono text-white">{totalXp}</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Total XP</span>
             </div>
@@ -619,16 +623,16 @@ export const FitpulseApp = () => {
               onClick={() => setActiveTab('workout')}
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <Dumbbell className="w-5 h-5 mx-auto text-emerald-400" />
-              <div className="text-base font-extrabold font-mono text-white">{workouts.length}</div>
-              <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Workouts</span>
+              <BookOpen className="w-5 h-5 mx-auto text-white" />
+              <div className="text-base font-extrabold font-mono text-white">0</div>
+              <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Lessons</span>
             </div>
 
             <div 
               onClick={() => setIsAnalyticsModalOpen(true)}
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <Clock className="w-5 h-5 mx-auto text-cyan-400" />
+              <Clock className="w-5 h-5 mx-auto text-white" />
               <div className="text-base font-extrabold font-mono text-white">35</div>
               <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Minutes</span>
             </div>
@@ -641,11 +645,11 @@ export const FitpulseApp = () => {
                 triggerClickSound();
                 setActiveTab('workout');
               }}
-              className="w-16 h-16 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform relative"
-              title="Workout Activities"
+              className="w-20 h-20 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform relative"
+              title="Lessons"
             >
-              <Dumbbell className="w-7 h-7" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-600 text-white text-[10px] font-mono font-bold flex items-center justify-center border border-slate-950">★</span>
+              <BookOpen className="w-8 h-8" />
+              <span className="absolute top-0 right-0 w-6 h-6 rounded-full bg-amber-600 text-white text-[12px] font-mono flex items-center justify-center border-2 border-black">★</span>
             </button>
 
             <button
@@ -653,18 +657,18 @@ export const FitpulseApp = () => {
                 triggerClickSound();
                 setActiveTab('food');
               }}
-              className="w-16 h-16 rounded-full bg-slate-100 hover:bg-white text-slate-950 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-              title="Meals & Nutrition"
+              className="w-20 h-20 rounded-full bg-white hover:bg-slate-100 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              title="Library"
             >
-              <UtensilsCrossed className="w-7 h-7 text-red-600" />
+              <Library className="w-8 h-8 text-rose-600" />
             </button>
 
             <button
               onClick={() => openQuickLog('hydration')}
-              className="w-16 h-16 rounded-full bg-[#18181b] border-2 border-slate-700 hover:border-blue-400 text-blue-400 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-              title="Hydration Intake"
+              className="w-20 h-20 rounded-full bg-[#18181b] border-2 border-slate-700 flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              title="Time"
             >
-              <Droplets className="w-7 h-7" />
+              <Hourglass className="w-8 h-8 text-slate-400" />
             </button>
 
             <button
@@ -672,10 +676,10 @@ export const FitpulseApp = () => {
                 triggerClickSound();
                 setActiveTab('goals');
               }}
-              className="w-16 h-16 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
-              title="Goals & Challenges"
+              className="w-20 h-20 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+              title="News"
             >
-              <Trophy className="w-7 h-7" />
+              <Newspaper className="w-8 h-8" />
             </button>
           </div>
 
@@ -686,25 +690,25 @@ export const FitpulseApp = () => {
               <button onClick={() => setIsAnalyticsModalOpen(true)} className="text-xs font-mono text-rose-500 hover:underline">View All</button>
             </div>
 
-            <div className="w-full rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-black border border-slate-800 p-5 shadow-2xl relative overflow-hidden space-y-3">
+            <div className="w-full rounded-3xl bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 border border-slate-800 p-5 shadow-2xl relative overflow-hidden space-y-3">
               <div className="flex items-center gap-2 text-[10px] font-mono font-bold">
-                <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                <span className="px-2.5 py-1 rounded-full bg-slate-800/50 text-amber-400 flex items-center gap-1">
                   <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> +10 XP
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-slate-700/50 text-slate-300 flex items-center gap-1">
+                <span className="px-2.5 py-1 rounded-full bg-slate-800/50 text-white flex items-center gap-1">
                   <Clock className="w-3 h-3" /> 5 min
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" /> 0% Completed
+                <span className="px-2.5 py-1 rounded-full bg-slate-800/50 text-emerald-400 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> 0%
                 </span>
               </div>
 
               <div>
-                <h3 className="text-xl font-serif font-extrabold text-white tracking-tight leading-tight">
-                  Fitness Training, Rewritten.
+                <h3 className="text-3xl font-serif font-extrabold text-slate-900 tracking-tight leading-tight">
+                  Language Learning,<br/>Rewritten.
                 </h3>
-                <p className="text-xs font-mono text-slate-400 mt-1">
-                  Daily Circuit • Part 1 • Lesson 1
+                <p className="text-xs font-mono text-slate-700 mt-2">
+                  Basic French Greetings<br/>Part 1 • Lesson 1
                 </p>
               </div>
 
@@ -738,21 +742,21 @@ export const FitpulseApp = () => {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${quest.completed ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'}`}>
-                      <Clock className="w-5 h-5" />
+                    <div className={`p-4 rounded-xl text-white ${quest.type === 'article' ? 'bg-yellow-500' : 'bg-blue-600'}`}>
+                      {quest.type === 'article' ? <Newspaper className="w-6 h-6" /> : <Clock className="w-6 h-6" />}
                     </div>
                     <div>
-                      <div className={`text-xs font-bold font-mono ${quest.completed ? 'line-through text-slate-400' : 'text-white'}`}>
+                      <div className={`text-sm font-bold font-sans ${quest.completed ? 'line-through text-slate-400' : 'text-white'}`}>
                         {quest.title}
                       </div>
-                      <span className={`text-[10px] ${mutedTextClass}`}>{quest.desc}</span>
+                      <span className={`text-xs ${mutedTextClass}`}>{quest.desc}</span>
                     </div>
                   </div>
 
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                  <div className={`w-8 h-8 rounded-2xl border-2 flex items-center justify-center transition-all ${
                     quest.completed ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-600'
                   }`}>
-                    {quest.completed && <Check className="w-4 h-4 stroke-[3]" />}
+                    {quest.completed && <Check className="w-5 h-5 stroke-[3]" />}
                   </div>
                 </div>
               ))}

@@ -1730,11 +1730,29 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                           </div>
                         </td>
 
-                        {/* Badge / Tier */}
+                        {/* Kudos Badge Each Rank */}
                         <td className="py-3 px-3">
-                          <span className="text-[11px] text-slate-300 font-sans font-medium px-2 py-0.5 rounded-lg bg-slate-800 border border-slate-700/50">
-                            {player.badge}
-                          </span>
+                          {rankNum === 1 ? (
+                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/50 text-amber-300 shadow-sm flex items-center gap-1 w-fit animate-pulse">
+                              👑 TITAN CHAMPION (150+ Kudos)
+                            </span>
+                          ) : rankNum === 2 ? (
+                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-sky-500/20 border border-cyan-500/50 text-cyan-300 shadow-sm flex items-center gap-1 w-fit">
+                              ⚡ APEX ATHLETE (100+ Kudos)
+                            </span>
+                          ) : rankNum === 3 ? (
+                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/50 text-orange-300 shadow-sm flex items-center gap-1 w-fit">
+                              🔥 STREAK WARRIOR (75+ Kudos)
+                            </span>
+                          ) : rankNum <= 5 ? (
+                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 w-fit">
+                              💪 GAINS MASTER (50+ Kudos)
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 flex items-center gap-1 w-fit">
+                              🚴 PULSE PERFORMER ({player.kudos} Kudos)
+                            </span>
+                          )}
                         </td>
 
                         {/* Category Metric Score */}

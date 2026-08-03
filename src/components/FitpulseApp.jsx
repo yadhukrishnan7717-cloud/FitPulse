@@ -105,6 +105,15 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isAddQuestModalOpen, setIsAddQuestModalOpen] = useState(false);
 
+  // User Profile Icon & Avatar State
+  const [selectedAvatar, setSelectedAvatar] = useState(() => {
+    return localStorage.getItem('fitpulse_user_avatar') || '⚡';
+  });
+  const [avatarColor, setAvatarColor] = useState(() => {
+    return localStorage.getItem('fitpulse_avatar_color') || 'emerald';
+  });
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+
   // Quick Stat Logger Modal State ('hydration', 'burn', 'sugar')
   const [quickLogModal, setQuickLogModal] = useState({ isOpen: false, type: null });
   const [customQuickValue, setCustomQuickValue] = useState('');
@@ -332,7 +341,9 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
     localStorage.setItem('fitpulse_kudos_map', JSON.stringify(lbKudosMap));
     localStorage.setItem('fitpulse_community_chat', JSON.stringify(chatMessages));
     localStorage.setItem('fitpulse_user_city', locationStatus);
-  }, [isDarkMode, fontStyle, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, dailyQuests, chatMessages, locationStatus]);
+    localStorage.setItem('fitpulse_user_avatar', selectedAvatar);
+    localStorage.setItem('fitpulse_avatar_color', avatarColor);
+  }, [isDarkMode, fontStyle, isSoundEnabled, userWeight, userHeight, calorieGoal, hydrationTarget, hydration, sugarCut, activeBurn, distanceKm, isGoogleConnected, workouts, foodLogs, challenges, dailyQuests, chatMessages, locationStatus, selectedAvatar, avatarColor]);
 
   const triggerClickSound = () => {
     if (isSoundEnabled) {
@@ -693,15 +704,32 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 triggerClickSound();
                 setIsProfileMenuOpen(!isProfileMenuOpen);
               }}
-              className="w-10 h-10 rounded-full bg-emerald-600 border-2 border-emerald-400 overflow-hidden cursor-pointer shadow-md flex items-center justify-center text-white font-bold text-sm hover:scale-105 transition-transform"
+              className={`w-10 h-10 rounded-full border-2 overflow-hidden cursor-pointer shadow-md flex items-center justify-center text-white font-bold text-sm hover:scale-105 transition-transform ${
+                avatarColor === 'blue' ? 'bg-blue-600 border-blue-400' :
+                avatarColor === 'amber' ? 'bg-amber-600 border-amber-400' :
+                avatarColor === 'rose' ? 'bg-rose-600 border-rose-400' :
+                avatarColor === 'purple' ? 'bg-purple-600 border-purple-400' :
+                'bg-emerald-600 border-emerald-400'
+              }`}
               title={`${username} Profile`}
             >
-              {username.substring(0, 2).toUpperCase()}
+              {selectedAvatar === 'initials' ? username.substring(0, 2).toUpperCase() : selectedAvatar}
             </div>
             
             {/* Dropdown Menu */}
             {isProfileMenuOpen && (
-              <div className="absolute right-0 mt-3 w-48 bg-[#18181b] border border-slate-800 rounded-2xl shadow-xl py-2 z-50 animate-fade-in text-slate-200 text-sm font-mono">
+              <div className="absolute right-0 mt-3 w-52 bg-[#18181b] border border-slate-800 rounded-2xl shadow-xl py-2 z-50 animate-fade-in text-slate-200 text-sm font-mono">
+                <button 
+                  onClick={() => {
+                    setIsProfileMenuOpen(false);
+                    triggerClickSound();
+                    setIsAvatarModalOpen(true);
+                  }}
+                  className="w-full text-left px-4 py-2.5 hover:bg-slate-800 transition-colors flex items-center gap-2 text-sky-400 font-bold"
+                >
+                  <User className="w-4 h-4" />
+                  Profile Icon Options
+                </button>
                 <button 
                   onClick={() => {
                     setIsProfileMenuOpen(false);
@@ -2461,6 +2489,119 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 10. DEDICATED PROFILE ICON OPTIONS MODAL */}
+      {isAvatarModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className={`relative w-full max-w-md border rounded-3xl p-6 space-y-5 shadow-2xl ${cardBgClass}`}>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                  <User className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold font-mono uppercase text-white">Profile Icon Options</h3>
+                  <span className={`text-[11px] font-mono ${mutedTextClass}`}>Customize your avatar &amp; ring color</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsAvatarModalOpen(false)}
+                className={`p-1.5 rounded-xl hover:bg-slate-800 ${mutedTextClass}`}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Current Profile Avatar Preview */}
+            <div className="flex flex-col items-center justify-center py-2 space-y-2">
+              <div className={`w-20 h-20 rounded-full border-4 flex items-center justify-center text-3xl shadow-xl transition-all ${
+                avatarColor === 'blue' ? 'bg-blue-600 border-blue-400 ring-4 ring-blue-500/20' :
+                avatarColor === 'amber' ? 'bg-amber-600 border-amber-400 ring-4 ring-amber-500/20' :
+                avatarColor === 'rose' ? 'bg-rose-600 border-rose-400 ring-4 ring-rose-500/20' :
+                avatarColor === 'purple' ? 'bg-purple-600 border-purple-400 ring-4 ring-purple-500/20' :
+                'bg-emerald-600 border-emerald-400 ring-4 ring-emerald-500/20'
+              }`}>
+                {selectedAvatar === 'initials' ? username.substring(0, 2).toUpperCase() : selectedAvatar}
+              </div>
+              <span className="text-xs font-mono font-bold text-white">{username}</span>
+            </div>
+
+            {/* Avatar Preset Grid */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">SELECT AVATAR ICON</span>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { id: '⚡', label: 'Neon' },
+                  { id: '🏋️', label: 'Lifter' },
+                  { id: '🚴', label: 'Rider' },
+                  { id: '🏊', label: 'Swimmer' },
+                  { id: '🥗', label: 'Foodie' },
+                  { id: '🏆', label: 'Champ' },
+                  { id: '🔥', label: 'Flame' },
+                  { id: '👑', label: 'King' },
+                  { id: '🎯', label: 'Focus' },
+                  { id: 'initials', label: 'Initials' }
+                ].map(av => (
+                  <button
+                    key={av.id}
+                    onClick={() => {
+                      triggerClickSound();
+                      setSelectedAvatar(av.id);
+                    }}
+                    className={`p-2.5 rounded-2xl border flex flex-col items-center justify-center transition-all ${
+                      selectedAvatar === av.id 
+                        ? 'bg-sky-600 text-white border-sky-400 scale-105 shadow-md' 
+                        : `${subCardBgClass} border-slate-800 text-slate-300 hover:border-slate-700`
+                    }`}
+                  >
+                    <span className="text-lg mb-0.5">{av.id === 'initials' ? username.substring(0, 2).toUpperCase() : av.id}</span>
+                    <span className="text-[9px] font-mono font-bold">{av.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Color Theme Selector */}
+            <div className="space-y-2 pt-2 border-t border-slate-800">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">RING &amp; BADGE COLOR</span>
+              <div className="flex gap-2">
+                {[
+                  { id: 'emerald', colorClass: 'bg-emerald-600 border-emerald-400' },
+                  { id: 'blue', colorClass: 'bg-blue-600 border-blue-400' },
+                  { id: 'amber', colorClass: 'bg-amber-600 border-amber-400' },
+                  { id: 'rose', colorClass: 'bg-rose-600 border-rose-400' },
+                  { id: 'purple', colorClass: 'bg-purple-600 border-purple-400' }
+                ].map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      triggerClickSound();
+                      setAvatarColor(c.id);
+                    }}
+                    className={`flex-1 py-2 rounded-xl border text-xs font-mono font-bold capitalize transition-all ${c.colorClass} ${
+                      avatarColor === c.id ? 'ring-2 ring-white scale-105 shadow-lg' : 'opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    {c.id}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => {
+                  triggerClickSound();
+                  setIsAvatarModalOpen(false);
+                }}
+                className="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-mono font-bold uppercase transition-all shadow-md"
+              >
+                Save Profile Icon
+              </button>
             </div>
           </div>
         </div>

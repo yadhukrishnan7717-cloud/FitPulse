@@ -57,7 +57,7 @@ import {
 } from 'lucide-react';
 import { switchAudio } from '../utils/audio';
 
-export const FitpulseApp = () => {
+export const FitpulseApp = ({ onLogout }) => {
   // Navigation State (4 Floating Bottom Tabs: 'dashboard', 'workout', 'food', 'goals')
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -1649,6 +1649,20 @@ export const FitpulseApp = () => {
             >
               <Save className="w-4 h-4" /> Save &amp; Update Settings
             </button>
+
+            {onLogout && (
+              <button
+                type="button"
+                onClick={() => {
+                  triggerClickSound();
+                  setIsSettingsModalOpen(false);
+                  onLogout();
+                }}
+                className="w-full py-3 rounded-2xl bg-rose-600/10 hover:bg-rose-600/20 text-rose-500 border border-rose-500/30 font-mono text-xs font-bold uppercase transition-all flex items-center justify-center gap-2 mt-2"
+              >
+                Log Out
+              </button>
+            )}
           </form>
         </div>
       )}

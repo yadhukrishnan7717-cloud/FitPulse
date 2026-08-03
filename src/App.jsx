@@ -35,7 +35,7 @@ export default function App() {
     }`}>
       {/* App Container */}
       <main className="flex-1 w-full max-w-4xl mx-auto flex items-center justify-center">
-        <FitpulseApp />
+        <FitpulseApp onLogout={() => setIsLoggedIn(false)} />
       </main>
 
       {/* Footer */}

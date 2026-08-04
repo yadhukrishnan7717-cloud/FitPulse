@@ -64,6 +64,7 @@ import { switchAudio } from '../utils/audio';
 import { FitpulseLogo } from './FitpulseLogo';
 import { CyclistCharacter, WeightlifterCharacter, SwimmerCharacter, FoodieCharacter } from './SectionCharacters';
 import { EmotionWidget } from './EmotionWidget';
+import { AdBanner } from './AdBanner';
 
 export const FitpulseApp = ({ username = 'User', onLogout }) => {
   // Navigation State (4 Floating Bottom Tabs: 'dashboard', 'workout', 'food', 'goals')
@@ -1104,6 +1105,11 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* AdSense / AdMob Monetization Banner */}
+          <div className="px-5">
+            <AdBanner label="Sponsor / Ad Monetization Partner" />
           </div>
         </div>
       )}

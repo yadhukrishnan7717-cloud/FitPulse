@@ -767,17 +767,17 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
             <BarChart3 className="w-4 h-4" />
           </button>
 
-          {/* Settings Button ⚙️ */}
+          {/* Settings Button (Replaced with FITPULSE Heart-ECG-Gear Icon) */}
           <button
             onClick={() => {
               triggerClickSound();
               setSettingsForm({ weight: userWeight, height: userHeight, calorieGoal: calorieGoal, hydrationTarget: hydrationTarget, fontStyle: fontStyle });
               setIsSettingsModalOpen(true);
             }}
-            className="p-2 rounded-full bg-[#18181b] text-slate-300 hover:bg-slate-800 border border-slate-800 transition-all"
+            className="p-1.5 rounded-full bg-[#18181b] hover:bg-slate-800 border border-slate-800 transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm"
             title="Open Settings"
           >
-            <Settings className="w-4 h-4" />
+            <FitpulseLogo height={22} showText={false} animated={false} />
           </button>
 
           {/* Profile Avatar with Dropdown */}

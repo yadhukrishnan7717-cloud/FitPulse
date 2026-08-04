@@ -8,19 +8,28 @@ export const VideoAdModal = ({ isOpen, onClose, onRewardEarned }) => {
   const [isRewardClaimed, setIsRewardClaimed] = useState(false);
 
   useEffect(() => {
+    if (isOpen) {
+      setIsPlaying(true);
+      setProgress(0);
+      setIsRewardClaimed(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     let timer;
     if (isOpen && isPlaying && progress < 100) {
       timer = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 98) {
+          const next = prev + 10;
+          if (next >= 100) {
             clearInterval(timer);
             setIsPlaying(false);
             setIsRewardClaimed(true);
             return 100;
           }
-          return prev + 5;
+          return next;
         });
-      }, 500); // 10-second video ad simulation
+      }, 500); // 5-second responsive video ad simulation
     }
     return () => clearInterval(timer);
   }, [isOpen, isPlaying, progress]);
@@ -108,21 +117,29 @@ export const VideoAdModal = ({ isOpen, onClose, onRewardEarned }) => {
         </div>
 
         {/* Claim Reward Section */}
-        {isRewardClaimed ? (
+        {isRewardClaimed || progress >= 100 ? (
           <div className="space-y-3 animate-fade-in text-center">
             <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold flex items-center justify-center gap-2">
-              <ShieldCheck className="w-5 h-5" /> VIDEO COMPLETED! +50 XP UNLOCKED
+              <ShieldCheck className="w-5 h-5 text-emerald-400" /> VIDEO COMPLETED! +50 XP UNLOCKED
             </div>
             <button
               onClick={handleClaimReward}
-              className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold uppercase transition-all shadow-lg hover:scale-105"
+              className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-mono text-xs font-extrabold uppercase transition-all shadow-lg hover:scale-105 active:scale-95"
             >
               Claim +50 XP Reward Now
             </button>
           </div>
         ) : (
-          <div className="text-center text-[10px] font-mono text-slate-500">
-            High-CPM Pop-up Video Monetization Unit • Google AdMob / AdSense
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="text-[10px] font-mono text-slate-500">
+              Ad Monetization Unit • Google AdMob / AdSense
+            </span>
+            <button
+              onClick={handleClaimReward}
+              className="text-[10px] font-mono text-amber-400 underline hover:text-amber-300 font-bold"
+            >
+              Skip &amp; Claim +50 XP
+            </button>
           </div>
         )}
       </div>

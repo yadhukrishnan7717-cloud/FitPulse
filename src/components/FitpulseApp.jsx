@@ -724,10 +724,10 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   return (
     <div className={`w-full max-w-md mx-auto min-h-screen pb-36 relative flex flex-col transition-colors duration-300 ${themeContainerClass} ${fontClass}`}>
       
-      {/* 1. TOP HEADER BAR: Greeting on Left, Chat & Header Buttons on Right */}
-      <div className="w-full px-5 pt-6 pb-4 flex items-center justify-between">
+      {/* 1. TOP HEADER BAR: Greeting on Left, Centered Animated Logo, Chat & Header Buttons on Right */}
+      <div className="w-full px-5 pt-6 pb-4 flex items-center justify-between gap-2">
         {/* Left: Greeting */}
-        <div>
+        <div className="flex-1">
           <span className="text-xs font-serif italic text-slate-400 block">
             {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening'},
           </span>
@@ -736,8 +736,13 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           </h1>
         </div>
 
+        {/* Center: FITPULSE Animated Heart-ECG-Gear Logo Icon */}
+        <div className="flex items-center justify-center px-2">
+          <FitpulseLogo height={34} showText={false} animated={true} />
+        </div>
+
         {/* Right: Chat & Header Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1 justify-end">
           {/* Community Chat 💬 */}
           <button
             onClick={() => {

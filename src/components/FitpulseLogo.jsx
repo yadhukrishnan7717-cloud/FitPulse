@@ -1,8 +1,8 @@
 import React from 'react';
 
-export const FitpulseLogo = ({ className = '', height = 48, animated = true }) => {
+export const FitpulseLogo = ({ className = '', height = 48, animated = true, showText = true }) => {
   return (
-    <div className={`flex items-center justify-center mx-auto gap-3 select-none ${className}`}>
+    <div className={`flex items-center justify-center gap-3 select-none ${className}`}>
       {/* Heart Icon with Pulse Wave & Gear */}
       <div className="relative flex items-center justify-center">
         <svg 
@@ -43,8 +43,9 @@ export const FitpulseLogo = ({ className = '', height = 48, animated = true }) =
         </svg>
       </div>
 
-      {/* Outlined FITPULSE Brand Text Matching Screenshot */}
-      <div className="flex flex-col justify-center">
+      {/* Outlined FITPULSE Brand Text */}
+      {showText && (
+        <div className="flex flex-col justify-center">
         <svg 
           height={height * 0.75} 
           viewBox="0 0 320 60" 
@@ -67,6 +68,7 @@ export const FitpulseLogo = ({ className = '', height = 48, animated = true }) =
           </text>
         </svg>
       </div>
+      )}
 
       {/* SVG Animation Keyframes */}
       <style>{`

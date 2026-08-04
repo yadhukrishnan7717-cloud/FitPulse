@@ -71,6 +71,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
   // Navigation & Video Ad State
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isVideoAdOpen, setIsVideoAdOpen] = useState(false);
+  const [tabClickCount, setTabClickCount] = useState(0);
 
   // Dark / Light Theme Mode State
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -1863,6 +1864,13 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 onClick={() => {
                   triggerClickSound();
                   setActiveTab(tab.id);
+                  setTabClickCount(prev => {
+                    const next = prev + 1;
+                    if (next % 3 === 0) {
+                      setIsVideoAdOpen(true);
+                    }
+                    return next;
+                  });
                 }}
                 className={`p-2.5 rounded-full transition-all ${
                   isSelected 

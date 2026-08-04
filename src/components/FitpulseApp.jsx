@@ -65,10 +65,12 @@ import { FitpulseLogo } from './FitpulseLogo';
 import { CyclistCharacter, WeightlifterCharacter, SwimmerCharacter, FoodieCharacter } from './SectionCharacters';
 import { EmotionWidget } from './EmotionWidget';
 import { AdBanner } from './AdBanner';
+import { VideoAdModal } from './VideoAdModal';
 
 export const FitpulseApp = ({ username = 'User', onLogout }) => {
-  // Navigation State (4 Floating Bottom Tabs: 'dashboard', 'workout', 'food', 'goals')
+  // Navigation & Video Ad State
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isVideoAdOpen, setIsVideoAdOpen] = useState(false);
 
   // Dark / Light Theme Mode State
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -1104,6 +1106,33 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                   +{recommendedExtraWaterMl}ml
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Rewarded Video Ad Card */}
+          <div className="px-5">
+            <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-950/80 via-slate-900 to-yellow-950/80 border border-amber-500/40 shadow-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  <Award className="w-6 h-6 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-mono font-bold uppercase text-white flex items-center gap-1">
+                    REWARDED VIDEO AD <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  </h4>
+                  <span className="text-[11px] font-mono text-slate-300 block">Watch 10-sec ad &amp; earn +50 XP!</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  triggerClickSound();
+                  setIsVideoAdOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-md hover:scale-105 active:scale-95 whitespace-nowrap"
+              >
+                Watch Ad
+              </button>
             </div>
           </div>
 
@@ -2674,6 +2703,16 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           </div>
         </div>
       )}
+
+      {/* 11. REWARDED VIDEO AD POP-UP MODAL */}
+      <VideoAdModal 
+        isOpen={isVideoAdOpen}
+        onClose={() => setIsVideoAdOpen(false)}
+        onRewardEarned={(earnedXp) => {
+          setTotalXp(prev => prev + earnedXp);
+          alert(`🎉 Reward Unlocked! +${earnedXp} XP added to your account!`);
+        }}
+      />
 
     </div>
   );

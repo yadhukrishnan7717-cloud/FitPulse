@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 export const AdBanner = ({ 
-  adClient = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-3940256099942544', 
+  adClient = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-4331871930564491', 
   adSlot = '1234567890', 
   format = 'auto', 
   responsive = 'true',

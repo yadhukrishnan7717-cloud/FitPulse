@@ -300,7 +300,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
     localStorage.setItem('fitpulse_food_logs', JSON.stringify(foodLogs));
     localStorage.setItem('fitpulse_challenges', JSON.stringify(challenges));
     localStorage.setItem('fitpulse_daily_quests', JSON.stringify(dailyQuests));
-    localStorage.setItem('fitpulse_kudos_map', JSON.stringify(lbKudosMap));
+
     localStorage.setItem('fitpulse_community_chat', JSON.stringify(chatMessages));
     localStorage.setItem('fitpulse_user_city', locationStatus);
     localStorage.setItem('fitpulse_user_avatar', selectedAvatar);

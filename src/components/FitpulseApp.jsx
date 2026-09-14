@@ -64,14 +64,10 @@ import { switchAudio } from '../utils/audio';
 import { FitpulseLogo } from './FitpulseLogo';
 import { CyclistCharacter, WeightlifterCharacter, SwimmerCharacter, FoodieCharacter } from './SectionCharacters';
 import { EmotionWidget } from './EmotionWidget';
-import { AdBanner } from './AdBanner';
-import { VideoAdModal } from './VideoAdModal';
 
 export const FitpulseApp = ({ username = 'User', onLogout }) => {
   // Navigation & Video Ad State
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isVideoAdOpen, setIsVideoAdOpen] = useState(false);
-  const [tabClickCount, setTabClickCount] = useState(0);
 
   // Dark / Light Theme Mode State
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -257,72 +253,6 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
       { id: 2, title: 'Read Fitness Article', desc: 'Earn +15 XP', completed: false, xp: 15, type: 'article' }
     ];
   });
-
-  // Leaderboard & Ranking State
-  const [lbTimeframe, setLbTimeframe] = useState('week'); // 'today', 'week', 'month', 'all'
-  const [lbCategory, setLbCategory] = useState('xp'); // 'xp', 'burn', 'distance', 'streak'
-  const [lbSearch, setLbSearch] = useState('');
-  const [lbKudosMap, setLbKudosMap] = useState(() => {
-    const saved = localStorage.getItem('fitpulse_kudos_map');
-    return saved ? JSON.parse(saved) : {
-      'alex-1': 52,
-      'elena-2': 44,
-      'marcus-3': 38,
-      'sarah-4': 31,
-      'david-5': 27,
-      'hana-6': 21,
-      'user-me': 15
-    };
-  });
-
-  const getLeaderboardData = () => {
-    const timeMultipliers = { today: 0.2, week: 1.0, month: 3.8, all: 14.5 };
-    const mult = timeMultipliers[lbTimeframe] || 1.0;
-
-    const baseAthletes = [
-      { id: 'alex-1', name: 'Alex Rivera', badge: 'Diamond Sprinter', avatar: '⚡', xp: 3420, burn: 1850, distance: 62.4, streak: 12 },
-      { id: 'elena-2', name: 'Elena Rostova', badge: 'Elite Cyclist', avatar: '🚴', xp: 3150, burn: 1620, distance: 84.1, streak: 9 },
-      { id: 'marcus-3', name: 'Marcus Chen', badge: 'Pro Powerlifter', avatar: '🏋️', xp: 2890, burn: 1410, distance: 31.0, streak: 14 },
-      { id: 'sarah-4', name: 'Sarah Jenkins', badge: 'Sprint Master', avatar: '🏃', xp: 2640, burn: 1290, distance: 45.2, streak: 7 },
-      { id: 'david-5', name: 'David Miller', badge: 'Endurance Legend', avatar: '🏔️', xp: 2310, burn: 1150, distance: 52.8, streak: 5 },
-      { id: 'hana-6', name: 'Hana Tanaka', badge: 'Zen Warrior', avatar: '🧘', xp: 2100, burn: 980, distance: 28.5, streak: 8 },
-      { id: 'user-me', name: `${username} (You)`, badge: 'Pulse Challenger', avatar: '🔥', xp: totalXp, burn: activeBurn, distance: distanceKm, streak: 4, isCurrentUser: true }
-    ];
-
-    const scaled = baseAthletes.map(player => {
-      const isMe = player.isCurrentUser;
-      const factor = isMe ? 1.0 : mult;
-      return {
-        ...player,
-        xpVal: Math.round(player.xp * factor),
-        burnVal: Math.round(player.burn * factor),
-        distVal: parseFloat((player.distance * factor).toFixed(1)),
-        kudos: lbKudosMap[player.id] || 0
-      };
-    });
-
-    const sorted = scaled.sort((a, b) => {
-      if (lbCategory === 'xp') return b.xpVal - a.xpVal;
-      if (lbCategory === 'burn') return b.burnVal - a.burnVal;
-      if (lbCategory === 'distance') return b.distVal - a.distVal;
-      if (lbCategory === 'streak') return b.streak - a.streak;
-      return b.xpVal - a.xpVal;
-    });
-
-    if (!lbSearch.trim()) return sorted;
-    return sorted.filter(item => 
-      item.name.toLowerCase().includes(lbSearch.toLowerCase()) || 
-      item.badge.toLowerCase().includes(lbSearch.toLowerCase())
-    );
-  };
-
-  const handleGiveKudos = (id) => {
-    triggerClickSound();
-    setLbKudosMap(prev => ({
-      ...prev,
-      [id]: (prev[id] || 0) + 1
-    }));
-  };
 
   // Automatic Daily Streak Analyzer (Calculates streak days automatically)
   useEffect(() => {
@@ -1109,38 +1039,6 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               </div>
             </div>
           </div>
-
-          {/* Rewarded Video Ad Card */}
-          <div className="px-5">
-            <div className="p-4 rounded-3xl bg-gradient-to-r from-amber-950/80 via-slate-900 to-yellow-950/80 border border-amber-500/40 shadow-xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                  <Award className="w-6 h-6 animate-pulse" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-mono font-bold uppercase text-white flex items-center gap-1">
-                    REWARDED VIDEO AD <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  </h4>
-                  <span className="text-[11px] font-mono text-slate-300 block">Watch 10-sec ad &amp; earn +50 XP!</span>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  triggerClickSound();
-                  setIsVideoAdOpen(true);
-                }}
-                className="px-3.5 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono text-xs font-bold uppercase transition-all shadow-md hover:scale-105 active:scale-95 whitespace-nowrap"
-              >
-                Watch Ad
-              </button>
-            </div>
-          </div>
-
-          {/* AdSense / AdMob Monetization Banner */}
-          <div className="px-5">
-            <AdBanner label="Sponsor / Ad Monetization Partner" />
-          </div>
         </div>
       )}
 
@@ -1537,315 +1435,6 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
         </div>
       )}
 
-      {/* TAB 5: LEADERBOARD & COMMUNITY RANKINGS TAB */}
-      {activeTab === 'leaderboard' && (
-        <div className="px-5 space-y-5 animate-fade-in pb-20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Crown className="w-5 h-5 text-amber-400" />
-              <h2 className="text-base font-bold uppercase font-mono text-white">Global Leaderboard &amp; Rankings</h2>
-            </div>
-            <button onClick={() => setActiveTab('dashboard')} className="text-xs font-mono text-slate-400 hover:text-white">← Back</button>
-          </div>
-
-          {/* Top Summary Metrics Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono">
-            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
-              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
-                <Users className="w-3.5 h-3.5 text-blue-400" /> Total Athletes
-              </div>
-              <div className="text-base font-extrabold text-white">1,248</div>
-            </div>
-            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
-              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
-                <Zap className="w-3.5 h-3.5 text-amber-400" /> Community XP
-              </div>
-              <div className="text-base font-extrabold text-amber-400">84.2K</div>
-            </div>
-            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
-              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5 text-rose-500" /> Avg Burn
-              </div>
-              <div className="text-base font-extrabold text-rose-400">1.4K kcal</div>
-            </div>
-            <div className={`p-3 rounded-2xl border ${cardBgClass} space-y-1`}>
-              <div className="text-[10px] uppercase text-slate-400 font-bold flex items-center gap-1">
-                <ThumbsUp className="w-3.5 h-3.5 text-emerald-400" /> Total Kudos
-              </div>
-              <div className="text-base font-extrabold text-emerald-400">1.8K 👏</div>
-            </div>
-          </div>
-
-          {/* Controls: Time Horizon & Category Selection */}
-          <div className={`p-4 rounded-3xl border space-y-3.5 ${cardBgClass}`}>
-            {/* Time Horizon Pills */}
-            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
-              <span className="text-[10px] font-mono font-bold uppercase text-slate-400 flex items-center gap-1 shrink-0">
-                <Clock className="w-3.5 h-3.5 text-rose-500" /> Timeframe:
-              </span>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {[
-                  { id: 'today', label: 'Today' },
-                  { id: 'week', label: 'This Week' },
-                  { id: 'month', label: 'This Month' },
-                  { id: 'all', label: 'All-Time' }
-                ].map(tf => (
-                  <button
-                    key={tf.id}
-                    onClick={() => {
-                      triggerClickSound();
-                      setLbTimeframe(tf.id);
-                    }}
-                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all ${
-                      lbTimeframe === tf.id 
-                        ? 'bg-rose-600 text-white shadow-md' 
-                        : `${subCardBgClass} hover:text-white`
-                    }`}
-                  >
-                    {tf.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Category Ranking Pills */}
-            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 border-t border-slate-800/80 pt-3">
-              <span className="text-[10px] font-mono font-bold uppercase text-slate-400 flex items-center gap-1 shrink-0">
-                <Filter className="w-3.5 h-3.5 text-amber-400" /> Metric:
-              </span>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {[
-                  { id: 'xp', label: '⚡ XP & Rank' },
-                  { id: 'burn', label: '🔥 Calories' },
-                  { id: 'distance', label: '🏃 Distance' },
-                  { id: 'streak', label: '💧 Streak' }
-                ].map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      triggerClickSound();
-                      setLbCategory(cat.id);
-                    }}
-                    className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all ${
-                      lbCategory === cat.id 
-                        ? 'bg-amber-400 text-slate-950 shadow-md' 
-                        : `${subCardBgClass} hover:text-white`
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Search Input Box */}
-            <div className="relative pt-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-              <input
-                type="text"
-                placeholder="Search athlete or badge title..."
-                value={lbSearch}
-                onChange={e => setLbSearch(e.target.value)}
-                className={`w-full pl-9 pr-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-amber-400 ${subCardBgClass}`}
-              />
-            </div>
-          </div>
-
-          {/* Top 3 Podium Highlights */}
-          {getLeaderboardData().length >= 3 && !lbSearch && (
-            <div className="grid grid-cols-3 gap-2.5 pt-1">
-              {/* 2nd Place */}
-              <div className={`p-3.5 rounded-3xl border border-slate-400/40 text-center space-y-2 relative ${cardBgClass}`}>
-                <div className="w-8 h-8 rounded-full bg-slate-300 text-slate-950 font-bold font-mono text-xs flex items-center justify-center mx-auto shadow-md">
-                  2nd
-                </div>
-                <div className="text-2xl">{getLeaderboardData()[1]?.avatar}</div>
-                <div>
-                  <div className="text-xs font-bold text-white truncate">{getLeaderboardData()[1]?.name}</div>
-                  <span className="text-[10px] font-mono text-slate-400 block truncate">{getLeaderboardData()[1]?.badge}</span>
-                </div>
-                <div className="text-xs font-mono font-bold text-slate-300">
-                  {lbCategory === 'xp' && `${getLeaderboardData()[1]?.xpVal} XP`}
-                  {lbCategory === 'burn' && `${getLeaderboardData()[1]?.burnVal} kcal`}
-                  {lbCategory === 'distance' && `${getLeaderboardData()[1]?.distVal} km`}
-                  {lbCategory === 'streak' && `${getLeaderboardData()[1]?.streak} days`}
-                </div>
-              </div>
-
-              {/* 1st Place (Gold Crown) */}
-              <div className={`p-4 rounded-3xl border-2 border-amber-400/80 text-center space-y-2 relative bg-gradient-to-b from-amber-500/10 via-slate-900 to-slate-950 shadow-xl -translate-y-2`}>
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-mono font-extrabold uppercase flex items-center gap-1 shadow-md">
-                  <Crown className="w-3 h-3 fill-slate-950" /> 1ST CHAMP
-                </div>
-                <div className="text-3xl pt-1">{getLeaderboardData()[0]?.avatar}</div>
-                <div>
-                  <div className="text-xs font-extrabold text-amber-300 truncate">{getLeaderboardData()[0]?.name}</div>
-                  <span className="text-[10px] font-mono text-amber-400/80 block truncate">{getLeaderboardData()[0]?.badge}</span>
-                </div>
-                <div className="text-sm font-mono font-extrabold text-amber-400">
-                  {lbCategory === 'xp' && `${getLeaderboardData()[0]?.xpVal} XP`}
-                  {lbCategory === 'burn' && `${getLeaderboardData()[0]?.burnVal} kcal`}
-                  {lbCategory === 'distance' && `${getLeaderboardData()[0]?.distVal} km`}
-                  {lbCategory === 'streak' && `${getLeaderboardData()[0]?.streak} days`}
-                </div>
-              </div>
-
-              {/* 3rd Place */}
-              <div className={`p-3.5 rounded-3xl border border-amber-700/40 text-center space-y-2 relative ${cardBgClass}`}>
-                <div className="w-8 h-8 rounded-full bg-amber-800 text-amber-100 font-bold font-mono text-xs flex items-center justify-center mx-auto shadow-md">
-                  3rd
-                </div>
-                <div className="text-2xl">{getLeaderboardData()[2]?.avatar}</div>
-                <div>
-                  <div className="text-xs font-bold text-white truncate">{getLeaderboardData()[2]?.name}</div>
-                  <span className="text-[10px] font-mono text-slate-400 block truncate">{getLeaderboardData()[2]?.badge}</span>
-                </div>
-                <div className="text-xs font-mono font-bold text-amber-600">
-                  {lbCategory === 'xp' && `${getLeaderboardData()[2]?.xpVal} XP`}
-                  {lbCategory === 'burn' && `${getLeaderboardData()[2]?.burnVal} kcal`}
-                  {lbCategory === 'distance' && `${getLeaderboardData()[2]?.distVal} km`}
-                  {lbCategory === 'streak' && `${getLeaderboardData()[2]?.streak} days`}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Leaderboard Table */}
-          <div className={`p-5 rounded-3xl border space-y-4 overflow-hidden ${cardBgClass}`}>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-xs font-bold uppercase font-mono flex items-center gap-2 text-slate-200">
-                <Trophy className="w-4 h-4 text-amber-400" /> Official Athlete Standings ({getLeaderboardData().length})
-              </h3>
-              <span className="text-[10px] font-mono text-slate-400">Live Auto-Synced</span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left font-mono border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider">
-                    <th className="py-2.5 px-3"># RANK</th>
-                    <th className="py-2.5 px-3">ATHLETE</th>
-                    <th className="py-2.5 px-3">TIER / BADGE</th>
-                    <th className="py-2.5 px-3 text-right">
-                      {lbCategory === 'xp' && 'TOTAL XP'}
-                      {lbCategory === 'burn' && 'CALORIES BURNED'}
-                      {lbCategory === 'distance' && 'DISTANCE'}
-                      {lbCategory === 'streak' && 'STREAK'}
-                    </th>
-                    <th className="py-2.5 px-3 text-center">STREAK</th>
-                    <th className="py-2.5 px-3 text-right">COMMUNITY KUDOS</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 text-xs">
-                  {getLeaderboardData().map((player, idx) => {
-                    const rankNum = idx + 1;
-                    const isMe = player.isCurrentUser;
-                    return (
-                      <tr 
-                        key={player.id}
-                        className={`transition-colors ${
-                          isMe 
-                            ? 'bg-rose-950/30 border-l-4 border-l-rose-500 hover:bg-rose-950/40' 
-                            : 'hover:bg-slate-800/40'
-                        }`}
-                      >
-                        {/* Rank Column */}
-                        <td className="py-3 px-3 font-bold">
-                          {rankNum === 1 ? (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-extrabold text-[11px] flex items-center gap-1 w-fit shadow">
-                              🥇 1st
-                            </span>
-                          ) : rankNum === 2 ? (
-                            <span className="px-2 py-0.5 rounded-full bg-slate-300 text-slate-950 font-extrabold text-[11px] flex items-center gap-1 w-fit shadow">
-                              🥈 2nd
-                            </span>
-                          ) : rankNum === 3 ? (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-800 text-amber-100 font-extrabold text-[11px] flex items-center gap-1 w-fit shadow">
-                              🥉 3rd
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 font-mono text-xs pl-2">#{rankNum}</span>
-                          )}
-                        </td>
-
-                        {/* Athlete Name & Avatar */}
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-lg p-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60">{player.avatar}</span>
-                            <div>
-                              <div className={`font-bold flex items-center gap-1.5 ${isMe ? 'text-rose-400' : 'text-white'}`}>
-                                {player.name}
-                                {isMe && (
-                                  <span className="px-1.5 py-0.2 rounded bg-rose-600 text-white text-[9px] font-mono font-extrabold uppercase">
-                                    YOU
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Kudos Badge Each Rank */}
-                        <td className="py-3 px-3">
-                          {rankNum === 1 ? (
-                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/50 text-amber-300 shadow-sm flex items-center gap-1 w-fit animate-pulse">
-                              👑 TITAN CHAMPION (150+ Kudos)
-                            </span>
-                          ) : rankNum === 2 ? (
-                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/20 to-sky-500/20 border border-cyan-500/50 text-cyan-300 shadow-sm flex items-center gap-1 w-fit">
-                              ⚡ APEX ATHLETE (100+ Kudos)
-                            </span>
-                          ) : rankNum === 3 ? (
-                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500/20 to-amber-500/20 border border-orange-500/50 text-orange-300 shadow-sm flex items-center gap-1 w-fit">
-                              🔥 STREAK WARRIOR (75+ Kudos)
-                            </span>
-                          ) : rankNum <= 5 ? (
-                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-1 w-fit">
-                              💪 GAINS MASTER (50+ Kudos)
-                            </span>
-                          ) : (
-                            <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 flex items-center gap-1 w-fit">
-                              🚴 PULSE PERFORMER ({player.kudos} Kudos)
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Category Metric Score */}
-                        <td className="py-3 px-3 text-right font-extrabold">
-                          {lbCategory === 'xp' && <span className="text-amber-400">{player.xpVal.toLocaleString()} XP</span>}
-                          {lbCategory === 'burn' && <span className="text-rose-400">{player.burnVal.toLocaleString()} kcal</span>}
-                          {lbCategory === 'distance' && <span className="text-emerald-400">{player.distVal} km</span>}
-                          {lbCategory === 'streak' && <span className="text-blue-400">{player.streak} Days</span>}
-                        </td>
-
-                        {/* Streak */}
-                        <td className="py-3 px-3 text-center">
-                          <span className="px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[11px] font-bold">
-                            🔥 {player.streak}d
-                          </span>
-                        </td>
-
-                        {/* Kudos Action */}
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            onClick={() => handleGiveKudos(player.id)}
-                            className="px-2.5 py-1 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[11px] font-bold transition-all active:scale-95 flex items-center gap-1 ml-auto"
-                            title="Give Kudos"
-                          >
-                            <span>👏</span>
-                            <span>{player.kudos}</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 4. FLOATING PILL BOTTOM NAVIGATION BAR (Matches Uploaded Screenshot UI) */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-40">
         <div className="w-full bg-[#18181b]/90 backdrop-blur-xl border border-slate-800 rounded-full p-2.5 shadow-2xl flex items-center justify-around">
@@ -1864,18 +1453,11 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                 onClick={() => {
                   triggerClickSound();
                   setActiveTab(tab.id);
-                  setTabClickCount(prev => {
-                    const next = prev + 1;
-                    if (next % 3 === 0) {
-                      setIsVideoAdOpen(true);
-                    }
-                    return next;
-                  });
                 }}
                 className={`p-2.5 rounded-full transition-all ${
                   isSelected 
-                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/40 scale-110' 
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-rose-600/90 text-white shadow-[0_0_15px_rgba(225,29,72,0.6)] scale-110' 
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
                 title={tab.label}
               >
@@ -2711,16 +2293,6 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
           </div>
         </div>
       )}
-
-      {/* 11. REWARDED VIDEO AD POP-UP MODAL */}
-      <VideoAdModal 
-        isOpen={isVideoAdOpen}
-        onClose={() => setIsVideoAdOpen(false)}
-        onRewardEarned={(earnedXp) => {
-          setTotalXp(prev => prev + earnedXp);
-          alert(`🎉 Reward Unlocked! +${earnedXp} XP added to your account!`);
-        }}
-      />
 
     </div>
   );

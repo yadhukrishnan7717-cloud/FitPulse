@@ -53,7 +53,6 @@ import {
   Hourglass,
   Newspaper,
   Book,
-  Crown,
   Medal,
   Search,
   Filter,
@@ -786,33 +785,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
       {/* TAB 1: DASHBOARD / HOME */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6 animate-fade-in">
-          {/* MAIN ATHLETIC DAILY STREAK CARD BANNER (Dashboard Only) */}
-          <div className="px-5">
-            <div className="w-full bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border border-blue-800/60 rounded-3xl p-5 shadow-2xl flex items-center justify-between text-white relative overflow-hidden group">
-              {/* Ambient Glow */}
-              <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-blue-600/20 blur-xl pointer-events-none" />
 
-              {/* Left Side: Flame & Streak Counter */}
-              <div className="flex items-center gap-3.5 z-10">
-                <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                  <Flame className="w-8 h-8 text-amber-400 animate-pulse" />
-                </div>
-                <div>
-                  <div className="text-3xl font-extrabold font-mono tracking-tight text-white">{streakDays}</div>
-                  <span className="text-xs font-mono text-blue-300 uppercase tracking-widest block">DAILY STREAK</span>
-                  <span className="text-[10px] font-mono text-slate-400">Keep up the athletic gains!</span>
-                </div>
-              </div>
-
-              {/* Right Side: Featured Athletic Character Avatar */}
-              <div className="flex items-center gap-3 z-10">
-                {/* Athletic Character (Weightlifter) */}
-                <div className="p-1 rounded-2xl bg-slate-800/80 border border-blue-500/30 shadow-lg">
-                  <WeightlifterCharacter className="w-16 h-16 transform group-hover:scale-110 transition-transform" />
-                </div>
-              </div>
-            </div>
-          </div>
 
 
           {/* Three Stat Cards Row (XP, Workouts, Active Mins) */}
@@ -1441,8 +1414,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
             { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
             { id: 'workout', label: 'Workout', icon: Dumbbell },
             { id: 'food', label: 'Food', icon: UtensilsCrossed },
-            { id: 'goals', label: 'Goals', icon: Trophy },
-            { id: 'leaderboard', label: 'Rankings', icon: Crown }
+            { id: 'goals', label: 'Goals', icon: Trophy }
           ].map((tab) => {
             const Icon = tab.icon;
             const isSelected = activeTab === tab.id;
@@ -1663,33 +1635,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
             {/* HYDRATION PRESET BUTTONS */}
             {quickLogModal.type === 'hydration' && (
               <div className="space-y-3 font-mono">
-                <p className="text-xs text-slate-400">Select a quick intake portion or enter custom ml:</p>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    onClick={() => handleAddHydrationMl(250)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
-                  >
-                    🥛 +250 ml <span className="text-[10px] text-blue-400 block font-normal">(Glass)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddHydrationMl(500)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
-                  >
-                    🧴 +500 ml <span className="text-[10px] text-blue-400 block font-normal">(Bottle)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddHydrationMl(750)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
-                  >
-                    🧃 +750 ml <span className="text-[10px] text-blue-400 block font-normal">(Sipper)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddHydrationMl(1000)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-blue-500 ${subCardBgClass}`}
-                  >
-                    🧪 +1,000 ml <span className="text-[10px] text-blue-400 block font-normal">(Flask)</span>
-                  </button>
-                </div>
+                <p className="text-xs text-slate-400">Enter custom ml:</p>
 
                 <div className="pt-2 flex gap-2">
                   <input
@@ -1712,33 +1658,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
             {/* ACTIVE BURN PRESET BUTTONS */}
             {quickLogModal.type === 'burn' && (
               <div className="space-y-3 font-mono">
-                <p className="text-xs text-slate-400">Select a quick workout activity burn or enter custom kcal:</p>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    onClick={() => handleAddActiveBurnKcal(100)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
-                  >
-                    🚶 +100 kcal <span className="text-[10px] text-orange-400 block font-normal">(15m Walk)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddActiveBurnKcal(250)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
-                  >
-                    🏃 +250 kcal <span className="text-[10px] text-orange-400 block font-normal">(25m Run)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddActiveBurnKcal(400)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
-                  >
-                    🚴 +400 kcal <span className="text-[10px] text-orange-400 block font-normal">(45m Cycle)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddActiveBurnKcal(600)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-orange-500 ${subCardBgClass}`}
-                  >
-                    🏋️ +600 kcal <span className="text-[10px] text-orange-400 block font-normal">(Gym Session)</span>
-                  </button>
-                </div>
+                <p className="text-xs text-slate-400">Enter custom kcal:</p>
 
                 <div className="pt-2 flex gap-2">
                   <input
@@ -1761,33 +1681,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
             {/* STEPS PRESET BUTTONS */}
             {quickLogModal.type === 'steps' && (
               <div className="space-y-3 font-mono">
-                <p className="text-xs text-slate-400">Select a quick step count or enter custom amount:</p>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <button
-                    onClick={() => handleAddSteps(500)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
-                  >
-                    🚶‍♂️ +500 <span className="text-[10px] text-amber-400 block font-normal">(Short Walk)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddSteps(1000)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
-                  >
-                    🚶‍♂️ +1,000 <span className="text-[10px] text-amber-400 block font-normal">(Block Walk)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddSteps(5000)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
-                  >
-                    🏃 +5,000 <span className="text-[10px] text-amber-400 block font-normal">(Long Walk)</span>
-                  </button>
-                  <button
-                    onClick={() => handleAddSteps(10000)}
-                    className={`p-3 rounded-xl border text-center font-bold hover:border-amber-500 ${subCardBgClass}`}
-                  >
-                    🏃 +10,000 <span className="text-[10px] text-amber-400 block font-normal">(Daily Goal)</span>
-                  </button>
-                </div>
+                <p className="text-xs text-slate-400">Enter custom amount:</p>
 
                 <div className="pt-2 flex gap-2">
                   <input

@@ -48,7 +48,6 @@ import {
   PlusCircle,
   Play,
   Star,
-  BookOpen,
   Menu,
   Library,
   Hourglass,
@@ -831,9 +830,9 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               onClick={() => setActiveTab('workout')}
               className={`p-3.5 rounded-2xl border text-center space-y-1 cursor-pointer transition-all hover:scale-105 ${cardBgClass}`}
             >
-              <BookOpen className="w-5 h-5 mx-auto text-rose-500" />
+              <Dumbbell className="w-5 h-5 mx-auto text-rose-500" />
               <div className={`text-base font-extrabold font-mono ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>0</div>
-              <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Lessons</span>
+              <span className={`text-[10px] font-mono uppercase block ${mutedTextClass}`}>Workouts</span>
             </div>
 
             <div 

@@ -1011,6 +1011,33 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
               </div>
             </div>
           </div>
+
+          {/* User Review Section */}
+          <div className="px-5 pb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
+              <h2 className={`text-base font-bold font-sans ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Success Story</h2>
+            </div>
+            <div className={`p-4.5 rounded-3xl border ${cardBgClass} space-y-4`}>
+              <img src="/review_transformation.jpg" alt="User Transformation Before and After" className="w-full h-auto rounded-2xl object-cover shadow-sm" />
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-1 text-amber-400">
+                  <Star className="w-4 h-4 fill-amber-400" />
+                  <Star className="w-4 h-4 fill-amber-400" />
+                  <Star className="w-4 h-4 fill-amber-400" />
+                  <Star className="w-4 h-4 fill-amber-400" />
+                  <Star className="w-4 h-4 fill-amber-400" />
+                </div>
+                <p className={`text-sm italic font-sans leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                  "From feeling stuck in your own skin to breaking your personal bests every single day—what if the only thing standing between where you are and where you want to be is tapping 'Start'?"
+                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <span className={`text-xs font-mono font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>- Rahul S.</span>
+                  <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Verified User ✓</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

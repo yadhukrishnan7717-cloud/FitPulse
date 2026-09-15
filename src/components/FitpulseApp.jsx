@@ -1032,7 +1032,7 @@ export const FitpulseApp = ({ username = 'User', onLogout }) => {
                   "From feeling stuck in your own skin to breaking your personal bests every single day—what if the only thing standing between where you are and where you want to be is tapping 'Start'?"
                 </p>
                 <div className="flex items-center justify-between mt-1">
-                  <span className={`text-xs font-mono font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>- Rahul S.</span>
+                  <span className={`text-xs font-mono font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>- Javad</span>
                   <span className={`text-[10px] font-mono uppercase ${mutedTextClass}`}>Verified User ✓</span>
                 </div>
               </div>
